@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Student = require("../models/Student");
+const bcrypt = require("bcryptjs");
+
 
 router.post("/", async (req, res) => {
   try {
@@ -12,20 +14,97 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Student already exists" });
     }
 
+    // NEW (hashed):
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const newStudent = new Student({
       name,
       email,
-      password,
+      password: hashedPassword,
       branch,
       semester,
       careerGoal
     });
+
 
     await newStudent.save();
 
     res.status(201).json({
       message: "Student registered successfully",
       student: newStudent
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// UPDATE STUDENT PROFILE
+// Endpoint: PUT /api/students/:id
+// Updates student profile (name, branch, semester, careerGoal)
+// Note: Password update should be handled separately with proper re-hashing
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        error: "Invalid student ID format"
+      });
+    }
+
+    // Exclude password from direct update (security)
+    const { password, ...updateData } = req.body;
+
+    const updatedStudent = await Student.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({
+        error: "Student not found"
+      });
+    }
+
+    res.status(200).json({
+      message: "Student updated successfully",
+      student: updatedStudent
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE STUDENT
+// Endpoint: DELETE /api/students/:id
+// Permanently removes a student from the database
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        error: "Invalid student ID format"
+      });
+    }
+
+    const deletedStudent = await Student.findByIdAndDelete(id);
+
+    if (!deletedStudent) {
+      return res.status(404).json({
+        error: "Student not found"
+      });
+    }
+
+    res.status(200).json({
+      message: "Student deleted successfully",
+      student: deletedStudent
     });
 
   } catch (error) {

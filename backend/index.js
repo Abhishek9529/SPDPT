@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -14,11 +15,13 @@ const taskSchema = require('../backend/models/Task.js');
 const taskRoutes = require('../backend/routes/tasks.js');
 const progressSchema = require('../backend/models/Progress.js');
 const progressRoutes = require('../backend/routes/progress.js');
+const authRoutes = require('../backend/routes/auth.js');
+const authMiddleware = require('../backend/middleware/auth.js');
 
 
 
 // after this error :- {"error":"Cannot destructure property 'name' of 'req.body' as it is undefined."}
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // mongodb connnection
@@ -44,10 +47,22 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/progress', progressRoutes);
 
 // root route
-app.get("/", (req, res)=>{
+app.get("/", (req, res) => {
     res.send("server sucessfully created...");
 })
 
-app.listen(port, () =>{
+// auth route for login 
+app.use("/api/auth", authRoutes);
+
+// protected route
+app.get("/api/protected", authMiddleware, (req, res) => {
+    res.json({
+        message: "Protected route accessed",
+        studentId: req.student.id
+    });
+});
+
+
+app.listen(port, () => {
     console.log(`server is running on ${port}`);
 })
