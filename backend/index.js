@@ -17,6 +17,7 @@ const progressSchema = require('../backend/models/Progress.js');
 const progressRoutes = require('../backend/routes/progress.js');
 const authRoutes = require('../backend/routes/auth.js');
 const authMiddleware = require('../backend/middleware/auth.js');
+const dashboardRoutes = require('../backend/routes/dashboard.js');
 
 
 
@@ -53,6 +54,9 @@ app.get("/", (req, res) => {
 
 // auth route for login 
 app.use("/api/auth", authRoutes);
+
+// dashboard route
+app.use("/api/dashboard", dashboardRoutes);
 
 // protected route
 app.get("/api/protected", authMiddleware, (req, res) => {
