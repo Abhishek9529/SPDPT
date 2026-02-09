@@ -1,7 +1,14 @@
 require("dotenv").config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = 3000;
+
+// Enable CORS for frontend
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
 const connectDB = require('../backend/config/db.js');
 const studentSchema = require('../backend/models/Student.js');
 const subjectSchema = require('../backend/models/Subject.js');

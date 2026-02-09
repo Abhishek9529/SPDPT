@@ -42,8 +42,8 @@ router.post("/", async (req, res) => {
 
 // UPDATE STUDENT PROFILE
 // Endpoint: PUT /api/students/:id
-// Updates student profile (name, branch, semester, careerGoal)
-// Note: Password update should be handled separately with proper re-hashing
+// Updates student profile (name, branch, semester, careerGoal, password)
+// Password is hashed before saving if provided
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -55,8 +55,13 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    // Exclude password from direct update (security)
     const { password, ...updateData } = req.body;
+
+    // If password is provided, hash it before updating
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+    }
 
     const updatedStudent = await Student.findByIdAndUpdate(
       id,
