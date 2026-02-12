@@ -1,0 +1,138 @@
+/* ===== Subjects Page ===== */
+.subjects-page {
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.subjects-page h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 1.5rem;
+}
+
+/* ===== Add Subject Form ===== */
+.subject-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    align-items: center;
+}
+
+.subject-form input,
+.subject-form select {
+    flex: 1 1 200px;
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background-color: #0f172a;
+    color: #f1f5f9;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.subject-form input::placeholder {
+    color: #64748b;
+}
+
+.subject-form input:focus,
+.subject-form select:focus {
+    border-color: #a78bfa;
+}
+
+.subject-form select option {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+.subject-form button {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background-color: #3b82f6;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.subject-form button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.subject-form button:active {
+    transform: translateY(0);
+}
+
+/* ===== Subject List ===== */
+.subject-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.subject-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    background-color: #1e1e2f;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+    color: #e2e8f0;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.subject-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.subject-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.subject-item strong {
+    color: #f1f5f9;
+    font-size: 1rem;
+}
+
+.subject-item span {
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.delete-subject-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background-color: #ef4444;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.delete-subject-btn:hover {
+    background-color: #dc2626;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #94a3b8;
+    font-size: 1rem;
+}

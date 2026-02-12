@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import "./Tasks.css";
 
 function Tasks() {
     const [tasks, setTasks] = useState([]);
@@ -66,45 +67,41 @@ function Tasks() {
         }
     };
 
-    if (loading) return <h3>Loading tasks...</h3>;
+    if (loading) return <h3 className="loading-text">Loading tasks...</h3>;
 
     return (
-        <div style={{ padding: "20px" }}>
+        <div className="tasks-page">
             <h2>My Tasks</h2>
 
             {/* Add Task Form */}
-            <form onSubmit={handleAddTask} style={{ marginBottom: "20px" }}>
+            <form className="task-form" onSubmit={handleAddTask}>
                 <input
                     placeholder="Task Title"
                     value={taskTitle}
                     onChange={(e) => setTaskTitle(e.target.value)}
-                    style={inputStyle}
                 />
-                <button type="submit" style={buttonStyle}>Add Task</button>
+                <button type="submit">Add Task</button>
             </form>
 
             {/* Tasks List */}
             {tasks.length === 0 ? (
-                <p>No tasks found. Add your first task above.</p>
+                <p className="empty-message">No tasks found. Add your first task above.</p>
             ) : (
-                <ul style={{ listStyle: "none", padding: 0 }}>
+                <ul className="task-list">
                     {tasks.map((task) => (
-                        <li key={task._id} style={{
-                            ...listItemStyle,
-                            backgroundColor: task.isCompleted ? "#d4edda" : "#f5f5f5"
-                        }}>
+                        <li
+                            key={task._id}
+                            className={`task-item ${task.isCompleted ? "completed" : ""}`}
+                        >
                             <input
                                 type="checkbox"
                                 checked={task.isCompleted}
                                 onChange={() => handleToggleComplete(task)}
-                                style={{ marginRight: "10px", cursor: "pointer" }}
                             />
-                            <span style={{
-                                textDecoration: task.isCompleted ? "line-through" : "none"
-                            }}>
+                            <span className={`task-title ${task.isCompleted ? "done" : ""}`}>
                                 {task.taskTitle}
                             </span>
-                            <span style={{ marginLeft: "10px", color: "#666" }}>
+                            <span className={`task-status ${task.isCompleted ? "completed-status" : ""}`}>
                                 {task.isCompleted ? "✓ Completed" : "Pending"}
                             </span>
                         </li>
@@ -114,30 +111,5 @@ function Tasks() {
         </div>
     );
 }
-
-const inputStyle = {
-    padding: "8px",
-    marginRight: "10px",
-    marginBottom: "10px",
-    fontSize: "14px",
-    width: "300px"
-};
-
-const buttonStyle = {
-    padding: "8px 16px",
-    backgroundColor: "#17a2b8",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer"
-};
-
-const listItemStyle = {
-    padding: "12px",
-    marginBottom: "8px",
-    borderRadius: "4px",
-    display: "flex",
-    alignItems: "center"
-};
 
 export default Tasks;

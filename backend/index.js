@@ -25,6 +25,7 @@ const progressRoutes = require('../backend/routes/progress.js');
 const authRoutes = require('../backend/routes/auth.js');
 const authMiddleware = require('../backend/middleware/auth.js');
 const dashboardRoutes = require('../backend/routes/dashboard.js');
+const timetableRoutes = require('../backend/routes/timetable.js');
 
 
 
@@ -64,6 +65,9 @@ app.use("/api/auth", authRoutes);
 
 // dashboard route
 app.use("/api/dashboard", dashboardRoutes);
+
+// With the other app.use() routes:
+app.use('/api/timetable', timetableRoutes); 
 
 // protected route
 app.get("/api/protected", authMiddleware, (req, res) => {

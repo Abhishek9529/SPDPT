@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [data, setData] = useState(null);
@@ -18,18 +19,41 @@ function Dashboard() {
       });
   }, []);
 
-  if (!data) return <h3>Loading dashboard...</h3>;
+  if (!data) return <h3 className="loading-text">Loading dashboard...</h3>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="dashboard-page">
       <h2>Student Dashboard</h2>
 
-      <p>Total Subjects: {data.totalSubjects}</p>
-      <p>Total Goals: {data.totalGoals}</p>
-      <p>Total Tasks: {data.totalTasks}</p>
-      <p>Completed Tasks: {data.completedTasks}</p>
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <p className="stat-label">Total Subjects</p>
+          <p className="stat-value">{data.totalSubjects}</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Total Goals</p>
+          <p className="stat-value">{data.totalGoals}</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Total Tasks</p>
+          <p className="stat-value">{data.totalTasks}</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Completed Tasks</p>
+          <p className="stat-value">{data.completedTasks}</p>
+        </div>
+      </div>
 
-      <h3>Overall Progress: {data.overallProgress}%</h3>
+      <div className="dashboard-progress">
+        <h3>Overall Progress</h3>
+        <div className="progress-bar-track">
+          <div
+            className="progress-bar-fill"
+            style={{ width: `${data.overallProgress}%` }}
+          ></div>
+        </div>
+        <p className="progress-percent">{data.overallProgress}%</p>
+      </div>
     </div>
   );
 }

@@ -14,6 +14,8 @@ const subjectSchema = new mongoose.Schema({
 
   semester: String,
 
+  day: String,
+
   attendance: {
     type: Number,
     default: 0
