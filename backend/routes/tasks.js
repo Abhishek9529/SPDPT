@@ -9,10 +9,53 @@ router.post("/", async (req, res) => {
     const task = new Task(req.body);
     await task.save();
 
+    // AUTO PROGRESS UPDATE on create (if task linked to goal)
+    if (task.goalId) {
+      const totalTasks = await Task.countDocuments({ goalId: task.goalId });
+      const completedTasks = await Task.countDocuments({ goalId: task.goalId, isCompleted: true });
+      const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      await Progress.findOneAndUpdate(
+        { studentId: task.studentId, goalId: task.goalId },
+        { percentage, updatedAt: Date.now() },
+        { upsert: true, new: true }
+      );
+    }
+
     res.status(201).json({
       message: "Task created successfully",
       task
     });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// CHECK IF TASK EXISTS FOR A SUBJECT ON A SPECIFIC DATE
+// Endpoint: GET /api/tasks/check/:studentId/:subjectId/:date
+// Returns the task if it exists, used by timetable checkbox
+router.get("/check/:studentId/:subjectId/:date", async (req, res) => {
+  try {
+    const { studentId, subjectId, date } = req.params;
+
+    // Build date range for the entire day (00:00:00 to 23:59:59)
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const task = await Task.findOne({
+      studentId,
+      subjectId,
+      date: { $gte: dayStart, $lte: dayEnd }
+    });
+
+    if (task) {
+      return res.status(200).json({ exists: true, task });
+    }
+
+    res.status(200).json({ exists: false, task: null });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -33,7 +76,7 @@ router.get("/:studentId", async (req, res) => {
       });
     }
 
-    const tasks = await Task.find({ studentId });
+    const tasks = await Task.find({ studentId }).populate("goalId");
 
     res.status(200).json({
       message: "Tasks retrieved successfully",

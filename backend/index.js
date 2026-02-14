@@ -26,6 +26,8 @@ const authRoutes = require('../backend/routes/auth.js');
 const authMiddleware = require('../backend/middleware/auth.js');
 const dashboardRoutes = require('../backend/routes/dashboard.js');
 const timetableRoutes = require('../backend/routes/timetable.js');
+const myDayRoutes = require('../backend/routes/myDay.js');
+const myDaySchema = require('../backend/models/MyDay.js');
 
 
 
@@ -76,6 +78,10 @@ app.get("/api/protected", authMiddleware, (req, res) => {
         studentId: req.student.id
     });
 });
+
+// myday route
+app.use("/api/myday", myDayRoutes);
+
 
 
 app.listen(port, () => {

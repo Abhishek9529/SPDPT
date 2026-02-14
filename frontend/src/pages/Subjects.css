@@ -136,3 +136,125 @@
     color: #94a3b8;
     font-size: 1rem;
 }
+
+/* ===== Timetable Section ===== */
+.timetable-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #334155;
+}
+
+.timetable-section h2 {
+    font-size: 1.5rem;
+    color: #f1f5f9;
+    margin-bottom: 1.5rem;
+}
+
+.timetable-controls {
+    margin-bottom: 1.5rem;
+}
+
+.day-selector {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    background-color: #0f172a;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+    width: 100%;
+    max-width: 300px;
+}
+
+.timetable-view {
+    background-color: #1e1e2f;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.timetable-view h3 {
+    margin-top: 0;
+    color: #a78bfa;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.timetable-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timetable-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #334155;
+    color: #e2e8f0;
+}
+
+.timetable-item:last-child {
+    border-bottom: none;
+}
+
+.no-schedule {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.add-timetable-form {
+    background-color: #1e293b;
+    padding: 1.5rem;
+    border-radius: 8px;
+    max-width: 500px;
+}
+
+.add-timetable-form h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #f8fafc;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.form-group select,
+.form-group input {
+    padding: 0.75rem;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #f1f5f9;
+}
+
+.form-divider {
+    text-align: center;
+    margin: 1rem 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.add-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.add-btn:hover {
+    background-color: #059669;
+}

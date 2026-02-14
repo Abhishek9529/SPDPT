@@ -1,0 +1,261 @@
+/* ===== MyDay Section ===== */
+.myday-section {
+    background-color: #1e1e2f;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+}
+
+.myday-section h3 {
+    margin: 0 0 1.25rem;
+    font-size: 1.2rem;
+    color: #f1f5f9;
+}
+
+/* ===== Dual Pie Charts ===== */
+.myday-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.myday-chart-card {
+    background-color: #161625;
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.myday-chart-card h4 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.myday-chart-wrapper {
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.myday-placeholder-text {
+    color: #64748b;
+    font-style: italic;
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* ===== Input Form ===== */
+.myday-form-card {
+    background-color: #161625;
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+
+.myday-form-card h4 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+/* Column headers */
+.myday-form-header {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr 36px;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 0.6rem;
+}
+
+.myday-form-header span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.myday-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.myday-form-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr 36px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Shared input styles */
+.myday-name-input,
+.myday-hours-input,
+.myday-note-input {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    background-color: #1e1e2f;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.myday-name-input:focus,
+.myday-hours-input:focus,
+.myday-note-input:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.myday-hours-input {
+    text-align: center;
+}
+
+.myday-name-input::placeholder,
+.myday-hours-input::placeholder,
+.myday-note-input::placeholder {
+    color: #475569;
+}
+
+/* Remove button */
+.myday-remove-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.myday-remove-btn:hover:not(:disabled) {
+    border-color: #ef4444;
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.myday-remove-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Add button */
+.myday-add-btn {
+    margin-top: 0.75rem;
+    padding: 0.45rem 1rem;
+    background-color: transparent;
+    border: 1px dashed #475569;
+    border-radius: 6px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.myday-add-btn:hover:not(:disabled) {
+    border-color: #6366f1;
+    color: #a78bfa;
+}
+
+.myday-add-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ===== Footer (total + button) ===== */
+.myday-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #334155;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.myday-total {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+.myday-remaining {
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.myday-total-error {
+    color: #ef4444 !important;
+}
+
+.myday-error {
+    font-size: 0.85rem;
+    color: #ef4444;
+}
+
+.myday-save-btn {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+}
+
+.myday-save-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.myday-save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .myday-charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myday-form-row,
+    .myday-form-header {
+        grid-template-columns: 1fr 60px 1fr 32px;
+        gap: 0.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .myday-form-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.3rem;
+    }
+
+    .myday-form-header {
+        display: none;
+    }
+
+    .myday-remove-btn {
+        grid-column: 2;
+        justify-self: end;
+    }
+}

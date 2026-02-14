@@ -21,8 +21,9 @@
     align-items: center;
 }
 
-.task-form input {
-    flex: 1 1 300px;
+.task-form input,
+.task-form select {
+    flex: 1 1 200px;
     padding: 0.7rem 1rem;
     font-size: 0.95rem;
     border: 1px solid #334155;
@@ -37,8 +38,14 @@
     color: #64748b;
 }
 
-.task-form input:focus {
+.task-form input:focus,
+.task-form select:focus {
     border-color: #a78bfa;
+}
+
+.task-form select option {
+    background-color: #0f172a;
+    color: #f1f5f9;
 }
 
 .task-form button {
