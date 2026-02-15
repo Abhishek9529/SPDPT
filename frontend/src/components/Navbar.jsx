@@ -52,6 +52,11 @@ function Navbar() {
                     </NavLink>
                 </li>
                 <li>
+                    <NavLink to="/profile" onClick={closeMenu}>
+                        Profile
+                    </NavLink>
+                </li>
+                <li>
                     <button className="navbar-logout-btn" onClick={handleLogout}>
                         Logout
                     </button>

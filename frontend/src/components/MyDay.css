@@ -13,6 +13,90 @@
     color: #f1f5f9;
 }
 
+/* ===== Productivity Score Card ===== */
+.myday-score-card {
+    background-color: #161625;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.myday-score-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.myday-score-icon {
+    font-size: 1.3rem;
+}
+
+.myday-score-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    flex: 1;
+}
+
+.myday-score-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.myday-score-bar-track {
+    width: 100%;
+    height: 10px;
+    background-color: #334155;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.myday-score-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.6s ease;
+}
+
+.myday-score-hint {
+    margin: 0.4rem 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* ===== Recommendations Card ===== */
+.myday-reco-card {
+    background-color: #161625;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+}
+
+.myday-reco-card h4 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.myday-reco-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.myday-reco-item {
+    padding: 0.6rem 0.75rem;
+    background-color: rgba(99, 102, 241, 0.08);
+    border-left: 3px solid #6366f1;
+    border-radius: 0 6px 6px 0;
+    color: #e2e8f0;
+    font-size: 0.88rem;
+}
+
 /* ===== Dual Pie Charts ===== */
 .myday-charts-grid {
     display: grid;

@@ -25,7 +25,33 @@ const IDEAL_DAY = [
     { name: "Misc", hours: 3 }
 ];
 
-function MyDay() {
+// Productive category names (case-insensitive partial match)
+const PRODUCTIVE_NAMES = [
+    "study", "skills", "college", "coding", "code", "dsa", "programming",
+    "project", "homework", "assignment", "lecture", "class", "lab",
+    "reading", "research", "practice", "learn", "course", "tutorial",
+    "exam", "test", "revision", "competitive", "development", "dev",
+    "internship", "work", "training", "workshop", "seminar"
+];
+
+// --- Recommendation rules ---
+function getRecommendations(categories) {
+    const tips = [];
+    const getHours = (keyword) => {
+        return categories
+            .filter(c => (c.name || "").toLowerCase().includes(keyword))
+            .reduce((s, c) => s + (Number(c.hours) || 0), 0);
+    };
+
+    if (getHours("skills") < 2) tips.push("Try to spend more time on skills tomorrow.");
+    if (getHours("study") < 3) tips.push("Increase study hours for better academic progress.");
+    if (getHours("health") < 1 && getHours("gym") < 1 && getHours("exercise") < 1) tips.push("Take care of your health – add exercise or gym time.");
+    if (getHours("sleep") < 6) tips.push("Proper sleep improves productivity. Aim for 7+ hours.");
+
+    return tips;
+}
+
+function MyDay({ onSave }) {
     // Dynamic rows: student types everything
     const [rows, setRows] = useState([
         { name: "", hours: "", note: "" }
@@ -33,10 +59,21 @@ function MyDay() {
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [productivityScore, setProductivityScore] = useState(null);
+    const [recommendations, setRecommendations] = useState([]);
 
     // Total hours
     const totalHours = rows.reduce((sum, r) => sum + (Number(r.hours) || 0), 0);
     const remainingHours = 24 - totalHours;
+
+    // Calculate productivity score from current rows
+    const calcScore = (cats, total) => {
+        if (!total || total === 0) return 0;
+        const productive = cats
+            .filter(c => PRODUCTIVE_NAMES.some(p => (c.name || "").toLowerCase().includes(p)))
+            .reduce((s, c) => s + (Number(c.hours) || 0), 0);
+        return Math.round((productive / total) * 100);
+    };
 
     // Fetch today's MyDay on mount
     useEffect(() => {
@@ -47,12 +84,20 @@ function MyDay() {
             .then(res => {
                 console.log("MyDay API response:", res.data);
                 if (res.data && res.data.categories && res.data.categories.length > 0) {
-                    setRows(res.data.categories.map(c => ({
+                    const cats = res.data.categories.map(c => ({
                         name: c.name || "",
                         hours: c.hours || "",
                         note: c.note || ""
-                    })));
+                    }));
+                    setRows(cats);
                     setSaved(true);
+
+                    // Set productivity score
+                    const score = res.data.productivityScore ?? calcScore(cats, res.data.totalHours);
+                    setProductivityScore(score);
+
+                    // Generate recommendations
+                    setRecommendations(getRecommendations(cats));
                 }
             })
             .catch(err => console.log("MyDay fetch:", err));
@@ -60,7 +105,6 @@ function MyDay() {
 
     // Update a row field
     const updateRow = (index, field, value) => {
-        // If updating hours, check 24hr limit
         if (field === "hours") {
             const num = Number(value) || 0;
             const othersTotal = rows.reduce(
@@ -82,7 +126,6 @@ function MyDay() {
         setError("");
     };
 
-    // Add a new row
     const addRow = () => {
         if (totalHours >= 24) {
             setError("Already at 24 hours — no more categories!");
@@ -91,7 +134,6 @@ function MyDay() {
         setRows(prev => [...prev, { name: "", hours: "", note: "" }]);
     };
 
-    // Remove a row
     const removeRow = (index) => {
         if (rows.length <= 1) return;
         setRows(prev => prev.filter((_, i) => i !== index));
@@ -100,7 +142,6 @@ function MyDay() {
 
     // Submit handler
     const handleSubmit = async () => {
-        // Filter out empty rows
         const validRows = rows.filter(r => r.name.trim() && Number(r.hours) > 0);
 
         if (validRows.length === 0) {
@@ -121,18 +162,30 @@ function MyDay() {
         setError("");
 
         try {
+            const cats = validRows.map(r => ({
+                name: r.name.trim(),
+                hours: Number(r.hours),
+                note: r.note || ""
+            }));
+
             const payload = {
                 studentId: student._id,
-                categories: validRows.map(r => ({
-                    name: r.name.trim(),
-                    hours: Number(r.hours),
-                    note: r.note || ""
-                }))
+                categories: cats
             };
 
             const res = await API.post("/myday", payload);
             console.log("MyDay saved:", res.data);
             setSaved(true);
+
+            // Update productivity score
+            const score = res.data.productivityScore ?? calcScore(cats, total);
+            setProductivityScore(score);
+
+            // Generate recommendations
+            setRecommendations(getRecommendations(cats));
+
+            // Notify parent (Dashboard) to refresh weekly chart
+            if (onSave) onSave();
         } catch (err) {
             console.error("MyDay save error:", err);
             setError("Failed to save. Try again.");
@@ -164,18 +217,13 @@ function MyDay() {
         }]
     };
 
-    // Pie options
     const makePieOptions = (withNotes = false) => ({
         responsive: true,
         maintainAspectRatio: true,
         plugins: {
             legend: {
                 position: "bottom",
-                labels: {
-                    color: "#e2e8f0",
-                    font: { size: 12 },
-                    padding: 10
-                }
+                labels: { color: "#e2e8f0", font: { size: 12 }, padding: 10 }
             },
             tooltip: {
                 callbacks: {
@@ -194,9 +242,35 @@ function MyDay() {
         }
     });
 
+    // Productivity score color
+    const scoreColor = productivityScore >= 60 ? "#22c55e"
+        : productivityScore >= 40 ? "#f59e0b" : "#ef4444";
+
     return (
         <div className="myday-section">
             <h3>📊 My Day Tracker</h3>
+
+            {/* ===== Productivity Score Badge ===== */}
+            {productivityScore !== null && (
+                <div className="myday-score-card">
+                    <div className="myday-score-header">
+                        <span className="myday-score-icon">🔥</span>
+                        <span className="myday-score-label">Productivity Score</span>
+                        <span className="myday-score-value" style={{ color: scoreColor }}>
+                            {productivityScore}%
+                        </span>
+                    </div>
+                    <div className="myday-score-bar-track">
+                        <div
+                            className="myday-score-bar-fill"
+                            style={{ width: `${productivityScore}%`, backgroundColor: scoreColor }}
+                        ></div>
+                    </div>
+                    <p className="myday-score-hint">
+                        Based on Study + Skills + College hours
+                    </p>
+                </div>
+            )}
 
             {/* ===== Dual Pie Charts ===== */}
             <div className="myday-charts-grid">
@@ -225,7 +299,6 @@ function MyDay() {
             <div className="myday-form-card">
                 <h4>⏱️ Log Today's Hours</h4>
 
-                {/* Column headers */}
                 <div className="myday-form-header">
                     <span>Activity</span>
                     <span>Hours</span>
@@ -272,12 +345,10 @@ function MyDay() {
                     ))}
                 </div>
 
-                {/* Add row button */}
                 <button className="myday-add-btn" onClick={addRow} disabled={totalHours >= 24}>
                     + Add Activity
                 </button>
 
-                {/* Footer: total + save */}
                 <div className="myday-form-footer">
                     <span className={`myday-total ${totalHours > 24 ? "myday-total-error" : ""}`}>
                         Total: {totalHours} / 24 hrs
@@ -297,6 +368,18 @@ function MyDay() {
                     </button>
                 </div>
             </div>
+
+            {/* ===== Recommendations ===== */}
+            {recommendations.length > 0 && (
+                <div className="myday-reco-card">
+                    <h4>📌 Recommendations</h4>
+                    <ul className="myday-reco-list">
+                        {recommendations.map((tip, i) => (
+                            <li key={i} className="myday-reco-item">{tip}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 }

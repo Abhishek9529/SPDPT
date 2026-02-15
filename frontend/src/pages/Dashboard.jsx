@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import "./Dashboard.css";
 import MyDay from "../components/MyDay";
+import WeeklyMyDayChart from "../components/WeeklyMyDayChart";
 
 
 function Dashboard() {
@@ -17,6 +18,7 @@ function Dashboard() {
 
   // Simple state: which subjects are done today { subjectId: taskId }
   const [doneSubjects, setDoneSubjects] = useState({});
+  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
 
   // Today as YYYY-MM-DD
   const today = new Date().toISOString().split("T")[0];
@@ -226,7 +228,10 @@ function Dashboard() {
       </div>
 
       {/* ===== MyDay: Dual Pie Charts + Hour Logger ===== */}
-      <MyDay />
+      <MyDay onSave={() => setWeeklyRefreshKey(k => k + 1)} />
+
+      {/* ===== Weekly Productivity Trend ===== */}
+      <WeeklyMyDayChart refreshKey={weeklyRefreshKey} />
 
       {/* ===== Timetable + Pending Tasks Grid ===== */}
       <div className="dashboard-content-grid">

@@ -21,7 +21,7 @@ function Login() {
             localStorage.setItem("student", JSON.stringify(res.data.student));
 
             alert("Login successful");
-            navigate("/dashboard");
+            navigate("/profile-setup");
 
         } catch (err) {
             alert(err.response?.data?.message || "Login failed");

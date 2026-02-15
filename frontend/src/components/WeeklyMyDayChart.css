@@ -1,0 +1,44 @@
+/* ===== Weekly Chart Section ===== */
+.weekly-chart-section {
+    background-color: #1e1e2f;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+}
+
+.weekly-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.weekly-chart-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #f1f5f9;
+}
+
+.weekly-avg-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #a78bfa;
+    background-color: rgba(167, 139, 250, 0.1);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+}
+
+.weekly-chart-container {
+    height: 250px;
+    position: relative;
+}
+
+.weekly-placeholder {
+    color: #64748b;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+}
