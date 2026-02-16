@@ -3,12 +3,15 @@ import API from "../services/api";
 import "./Dashboard.css";
 import MyDay from "../components/MyDay";
 import WeeklyMyDayChart from "../components/WeeklyMyDayChart";
+import TaskReminder from "../components/TaskReminder";
+import GreetingBanner from "../components/GreetingBanner";
 
 
 function Dashboard() {
   const [data, setData] = useState(null);
   const [timetable, setTimetable] = useState(null);
   const [currentDay, setCurrentDay] = useState("");
+  const [studentName, setStudentName] = useState("Student");
 
   // Progress states (derived from tasks)
   const [academicProgress, setAcademicProgress] = useState(0);
@@ -107,6 +110,8 @@ function Dashboard() {
     const student = JSON.parse(localStorage.getItem("student"));
     if (!student) return;
 
+    setStudentName(student.fullName || student.name || student.firstName || "Student");
+
     // 1. Fetch Dashboard Stats
     API.get(`/dashboard/${student._id}`)
       .then(res => setData(res.data))
@@ -168,12 +173,18 @@ function Dashboard() {
     <div className="dashboard-page">
       <h2>Student Dashboard</h2>
 
+      <GreetingBanner studentName={studentName} taskCount={pendingTasks.length} />
+
       {/* ===== Stat Cards ===== */}
       <div className="dashboard-stats">
+        {/* <div>
+          <TaskReminder />
+        </div> */}
         <div className="stat-card">
           <p className="stat-label">Total Subjects</p>
           <p className="stat-value">{data.totalSubjects}</p>
         </div>
+
         <div className="stat-card">
           <p className="stat-label">Total Goals</p>
           <p className="stat-value">{data.totalGoals}</p>

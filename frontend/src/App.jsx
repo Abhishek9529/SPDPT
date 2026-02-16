@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import ProfileSetup from "./pages/ProfileSetup";
 import Navbar from "./components/Navbar";
 import "./App.css";
+// import TaskReminder from "./components/TaskReminder";
 
 // Layout component that conditionally shows Navbar
 function Layout({ children }) {
