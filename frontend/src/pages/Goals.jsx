@@ -6,6 +6,7 @@ function Goals() {
     const [goals, setGoals] = useState([]);
     const [title, setTitle] = useState("");
     const [type, setType] = useState("skill");
+    const [deadline, setDeadline] = useState("");
     const [loading, setLoading] = useState(true);
 
     const student = JSON.parse(localStorage.getItem("student"));
@@ -36,12 +37,14 @@ function Goals() {
             const res = await API.post("/goals", {
                 studentId: student._id,
                 title,
-                type
+                type,
+                endDate: deadline || undefined
             });
 
             setGoals([...goals, res.data.goal]);
             setTitle("");
             setType("skill");
+            setDeadline("");
             alert("Goal added successfully");
         } catch (err) {
             alert(err.response?.data?.error || "Failed to add goal");
@@ -65,9 +68,19 @@ function Goals() {
                     onChange={(e) => setType(e.target.value)}
                 >
                     <option value="skill">Skill</option>
-                    <option value="exam">Exam</option>
                     <option value="academic">Academic</option>
+                    <option value="exam">Exam</option>
+                    <option value="longterm">Long Term</option>
+                    <option value="midterm">Mid Term</option>
+                    <option value="shortterm">Short Term</option>
                 </select>
+                <input
+                    type="date"
+                    placeholder="Deadline (Optional)"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    className="deadline-input"
+                />
                 <button type="submit">Add Goal</button>
             </form>
 
@@ -75,13 +88,17 @@ function Goals() {
                 <p className="empty-message">No goals found. Add your first goal above.</p>
             ) : (
                 <ul className="goal-list">
-                    {goals.map((goal) => (
-                        <li key={goal._id} className="goal-item">
-                            <strong>{goal.title}</strong>
-                            <span> | Type: {goal.type}</span>
-                            <span> | Status: {goal.status}</span>
-                        </li>
-                    ))}
+                    {goals.map((goal) => {
+                        const deadline = goal.endDate ? new Date(goal.endDate).toLocaleDateString() : null;
+                        return (
+                            <li key={goal._id} className="goal-item">
+                                <strong>{goal.title}</strong>
+                                <span> | Type: {goal.type}</span>
+                                <span> | Status: {goal.status}</span>
+                                {deadline && <span className="goal-deadline"> | Deadline: {deadline}</span>}
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
         </div>

@@ -14,7 +14,7 @@ const goalSchema = new mongoose.Schema({
 
   type: {
     type: String,
-    enum: ["skill", "exam", "academic"],
+    enum: ["skill", "exam", "academic", "longterm", "midterm", "shortterm"],
     required: true
   },
 

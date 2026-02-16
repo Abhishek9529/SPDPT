@@ -48,6 +48,16 @@
     color: #f1f5f9;
 }
 
+/* Deadline Date Input */
+.goal-form .deadline-input {
+    flex: 0 1 180px;
+}
+
+.goal-form input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+}
+
 .goal-form button {
     padding: 0.7rem 1.5rem;
     font-size: 0.95rem;
@@ -103,6 +113,11 @@
 .goal-item span {
     color: #94a3b8;
     font-size: 0.9rem;
+}
+
+.goal-deadline {
+    color: #fbbf24 !important;
+    font-weight: 600;
 }
 
 .empty-message {
