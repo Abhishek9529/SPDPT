@@ -108,6 +108,25 @@ function Tasks() {
         }
     };
 
+    // Delete task
+    const handleDeleteTask = async (taskId) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this task?");
+
+        if (!confirmDelete) return;
+
+        try {
+            await API.delete(`/tasks/${taskId}`);
+
+            // Remove task from list
+            setTasks(tasks.filter(t => t._id !== taskId));
+
+            alert("Task deleted successfully");
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.error || "Failed to delete task");
+        }
+    };
+
     if (loading) return <h3 className="loading-text">Loading tasks...</h3>;
 
     return (
@@ -178,6 +197,13 @@ function Tasks() {
                             <span className={`task-status ${task.isCompleted ? "completed-status" : ""}`}>
                                 {task.isCompleted ? "✓ Completed" : "Pending"}
                             </span>
+                            <button
+                                className="delete-btn"
+                                onClick={() => handleDeleteTask(task._id)}
+                                title="Delete task"
+                            >
+                                🗑️
+                            </button>
                         </li>
                     ))}
                 </ul>

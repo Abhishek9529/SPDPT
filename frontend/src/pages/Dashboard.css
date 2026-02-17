@@ -43,10 +43,10 @@
     margin: 0;
 }
 
-/* ===== Progress Grid (Academic / Skill / PDP) ===== */
+/* ===== Progress Grid (Academic / Skill on row 1, Short/Mid/Long-term on row 2) ===== */
 .progress-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(6, 1fr);
     gap: 1.25rem;
     margin-bottom: 2rem;
 }
@@ -62,6 +62,19 @@
     margin: 0 0 1rem;
     font-size: 1.05rem;
     color: #f1f5f9;
+}
+
+/* Academic and Skill cards span 3 columns each (row 1) */
+.progress-card:nth-child(1),
+.progress-card:nth-child(2) {
+    grid-column: span 3;
+}
+
+/* Short, Mid, Long-term cards span 2 columns each (row 2) */
+.progress-card:nth-child(3),
+.progress-card:nth-child(4),
+.progress-card:nth-child(5) {
+    grid-column: span 2;
 }
 
 /* PDP card spans full width */
@@ -122,9 +135,161 @@
     color: #a78bfa;
 }
 
+/* Short-term bar: pink/red gradient */
+.shortterm-fill {
+    background: linear-gradient(90deg, #f43f5e, #be123c);
+}
+
+.shortterm-color {
+    color: #fb7185;
+}
+
+/* Mid-term bar: cyan gradient */
+.midterm-fill {
+    background: linear-gradient(90deg, #06b6d4, #0e7490);
+}
+
+.midterm-color {
+    color: #22d3ee;
+}
+
+/* Long-term bar: purple gradient */
+.longterm-fill {
+    background: linear-gradient(90deg, #a78bfa, #7c3aed);
+}
+
+.longterm-color {
+    color: #a78bfa;
+}
+
+/* View Tasks Button */
+.view-tasks-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #a78bfa;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #a78bfa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.view-tasks-btn:hover {
+    background-color: rgba(167, 139, 250, 0.1);
+    transform: translateY(-1px);
+}
+
+.view-tasks-btn:active {
+    transform: translateY(0);
+}
+
+/* Goal Tasks List */
+.goal-tasks-list {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #334155;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.goal-tasks-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.goal-tasks-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: #0f172a;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.goal-tasks-list li:hover {
+    background-color: #1e293b;
+}
+
+.goal-tasks-list .completed-task {
+    opacity: 0.6;
+    border-left: 2px solid #22c55e;
+}
+
+.goal-tasks-list .pending-task {
+    border-left: 2px solid #f59e0b;
+}
+
+.goal-tasks-list .task-status-icon {
+    font-size: 1rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.goal-tasks-list .completed-task .task-status-icon {
+    color: #22c55e;
+}
+
+.goal-tasks-list .pending-task .task-status-icon {
+    color: #f59e0b;
+}
+
+.goal-tasks-list .task-name {
+    flex: 1;
+    color: #e2e8f0;
+}
+
+.goal-tasks-list .completed-task .task-name {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+.goal-tasks-list .task-goal {
+    font-size: 0.75rem;
+    color: #a78bfa;
+    font-style: italic;
+}
+
+.goal-tasks-list .no-tasks {
+    text-align: center;
+    color: #64748b;
+    font-style: italic;
+    padding: 1rem;
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .progress-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* All cards span full width on tablets */
+    .progress-card:nth-child(1),
+    .progress-card:nth-child(2),
+    .progress-card:nth-child(3),
+    .progress-card:nth-child(4),
+    .progress-card:nth-child(5) {
+        grid-column: span 1;
+    }
+}
+
 @media (max-width: 768px) {
     .progress-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* All cards span full width on mobile */
+    .progress-card:nth-child(1),
+    .progress-card:nth-child(2),
+    .progress-card:nth-child(3),
+    .progress-card:nth-child(4),
+    .progress-card:nth-child(5) {
+        grid-column: span 1;
     }
 }
 

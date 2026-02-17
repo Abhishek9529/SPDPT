@@ -16,8 +16,21 @@ function Dashboard() {
   // Progress states (derived from tasks)
   const [academicProgress, setAcademicProgress] = useState(0);
   const [skillProgress, setSkillProgress] = useState(0);
-  const [overallPDP, setOverallPDP] = useState(0);
+  const [shortTermProgress, setShortTermProgress] = useState(0);
+  const [midTermProgress, setMidTermProgress] = useState(0);
+  const [longTermProgress, setLongTermProgress] = useState(0);
   const [pendingTasks, setPendingTasks] = useState([]);
+
+  // Track tasks by goal type for modal display
+  const [shortTermTasks, setShortTermTasks] = useState([]);
+  const [midTermTasks, setMidTermTasks] = useState([]);
+  const [longTermTasks, setLongTermTasks] = useState([]);
+  const [selectedGoalType, setSelectedGoalType] = useState(null);
+
+  // Goal names
+  const [shortTermGoalName, setShortTermGoalName] = useState("Short-Term Goals");
+  const [midTermGoalName, setMidTermGoalName] = useState("Mid-Term Goals");
+  const [longTermGoalName, setLongTermGoalName] = useState("Long-Term Goals");
 
   // Simple state: which subjects are done today { subjectId: taskId }
   const [doneSubjects, setDoneSubjects] = useState({});
@@ -98,9 +111,31 @@ function Dashboard() {
         const completedSkill = skillTasks.filter(t => t.isCompleted).length;
         const skProg = skillTasks.length > 0 ? Math.round((completedSkill / skillTasks.length) * 100) : 0;
 
+        // Short-term progress
+        const shortTasks = allTasks.filter(t => t.goalId && t.goalId.type === "shortterm");
+        const completedShort = shortTasks.filter(t => t.isCompleted).length;
+        const shortProg = shortTasks.length > 0 ? Math.round((completedShort / shortTasks.length) * 100) : 0;
+
+        // Mid-term progress
+        const midTasks = allTasks.filter(t => t.goalId && t.goalId.type === "midterm");
+        const completedMid = midTasks.filter(t => t.isCompleted).length;
+        const midProg = midTasks.length > 0 ? Math.round((completedMid / midTasks.length) * 100) : 0;
+
+        // Long-term progress
+        const longTasks = allTasks.filter(t => t.goalId && t.goalId.type === "longterm");
+        const completedLong = longTasks.filter(t => t.isCompleted).length;
+        const longProg = longTasks.length > 0 ? Math.round((completedLong / longTasks.length) * 100) : 0;
+
         setAcademicProgress(acProg);
         setSkillProgress(skProg);
-        setOverallPDP(Math.round((acProg + skProg) / 2));
+        setShortTermProgress(shortProg);
+        setMidTermProgress(midProg);
+        setLongTermProgress(longProg);
+
+        setShortTermTasks(shortTasks);
+        setMidTermTasks(midTasks);
+        setLongTermTasks(longTasks);
+
         setPendingTasks(allTasks.filter(t => !t.isCompleted));
       })
       .catch(err => console.log(err));
@@ -145,6 +180,22 @@ function Dashboard() {
         setTimetable(null);
       });
 
+    // 3. Fetch Goals to get goal names
+    API.get(`/goals/${student._id}`)
+      .then(res => {
+        const goals = res.data.goals || [];
+
+        // Find first goal of each type and set its name
+        const shortTermGoal = goals.find(g => g.type === "shortterm");
+        const midTermGoal = goals.find(g => g.type === "midterm");
+        const longTermGoal = goals.find(g => g.type === "longterm");
+
+        if (shortTermGoal) setShortTermGoalName(shortTermGoal.title);
+        if (midTermGoal) setMidTermGoalName(midTermGoal.title);
+        if (longTermGoal) setLongTermGoalName(longTermGoal.title);
+      })
+      .catch(err => console.log("Error fetching goals:", err));
+
     // 4. Fetch ALL tasks → compute progress
     API.get(`/tasks/${student._id}`)
       .then(res => {
@@ -158,9 +209,31 @@ function Dashboard() {
         const completedSkill = skillTasks.filter(t => t.isCompleted).length;
         const skProg = skillTasks.length > 0 ? Math.round((completedSkill / skillTasks.length) * 100) : 0;
 
+        // Short-term progress
+        const shortTasks = allTasks.filter(t => t.goalId && t.goalId.type === "shortterm");
+        const completedShort = shortTasks.filter(t => t.isCompleted).length;
+        const shortProg = shortTasks.length > 0 ? Math.round((completedShort / shortTasks.length) * 100) : 0;
+
+        // Mid-term progress
+        const midTasks = allTasks.filter(t => t.goalId && t.goalId.type === "midterm");
+        const completedMid = midTasks.filter(t => t.isCompleted).length;
+        const midProg = midTasks.length > 0 ? Math.round((completedMid / midTasks.length) * 100) : 0;
+
+        // Long-term progress
+        const longTasks = allTasks.filter(t => t.goalId && t.goalId.type === "longterm");
+        const completedLong = longTasks.filter(t => t.isCompleted).length;
+        const longProg = longTasks.length > 0 ? Math.round((completedLong / longTasks.length) * 100) : 0;
+
         setAcademicProgress(acProg);
         setSkillProgress(skProg);
-        setOverallPDP(Math.round((acProg + skProg) / 2));
+        setShortTermProgress(shortProg);
+        setMidTermProgress(midProg);
+        setLongTermProgress(longProg);
+
+        setShortTermTasks(shortTasks);
+        setMidTermTasks(midTasks);
+        setLongTermTasks(longTasks);
+
         setPendingTasks(allTasks.filter(t => !t.isCompleted));
       })
       .catch(err => console.log("Error fetching tasks:", err));
@@ -199,7 +272,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* ===== Progress Section (3 bars) ===== */}
+      {/* ===== Progress Section ===== */}
       <div className="progress-grid">
         {/* Academic Progress */}
         <div className="progress-card">
@@ -225,16 +298,124 @@ function Dashboard() {
           <p className="progress-percent skill-color">{skillProgress}%</p>
         </div>
 
-        {/* Overall PDP Progress */}
-        <div className="progress-card pdp-card">
-          <h3>🎯 Overall PDP Progress</h3>
-          <div className="progress-bar-track pdp-track">
+        {/* Short-Term Progress */}
+        <div className="progress-card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+            <h3>🎯 {shortTermGoalName}</h3>
+            <button
+              className="view-tasks-btn"
+              onClick={() => setSelectedGoalType(selectedGoalType === "shortterm" ? null : "shortterm")}
+              title="View tasks"
+            >
+              {selectedGoalType === "shortterm" ? "Hide Tasks" : "View Tasks"}
+            </button>
+          </div>
+          <div className="progress-bar-track">
             <div
-              className="progress-bar-fill pdp-fill"
-              style={{ width: `${overallPDP}%` }}
+              className="progress-bar-fill shortterm-fill"
+              style={{ width: `${shortTermProgress}%` }}
             ></div>
           </div>
-          <p className="progress-percent pdp-color">{overallPDP}%</p>
+          <p className="progress-percent shortterm-color">{shortTermProgress}%</p>
+
+          {/* Task List for Short-Term */}
+          {selectedGoalType === "shortterm" && (
+            <div className="goal-tasks-list">
+              {shortTermTasks.length > 0 ? (
+                <ul>
+                  {shortTermTasks.map(task => (
+                    <li key={task._id} className={task.isCompleted ? "completed-task" : "pending-task"}>
+                      <span className="task-status-icon">{task.isCompleted ? "✓" : "○"}</span>
+                      <span className="task-name">{task.taskTitle}</span>
+                      {task.goalId && <span className="task-goal">({task.goalId.title})</span>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-tasks">No short-term tasks yet</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Mid-Term Progress */}
+        <div className="progress-card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+            <h3>📈 {midTermGoalName}</h3>
+            <button
+              className="view-tasks-btn"
+              onClick={() => setSelectedGoalType(selectedGoalType === "midterm" ? null : "midterm")}
+              title="View tasks"
+            >
+              {selectedGoalType === "midterm" ? "Hide Tasks" : "View Tasks"}
+            </button>
+          </div>
+          <div className="progress-bar-track">
+            <div
+              className="progress-bar-fill midterm-fill"
+              style={{ width: `${midTermProgress}%` }}
+            ></div>
+          </div>
+          <p className="progress-percent midterm-color">{midTermProgress}%</p>
+
+          {/* Task List for Mid-Term */}
+          {selectedGoalType === "midterm" && (
+            <div className="goal-tasks-list">
+              {midTermTasks.length > 0 ? (
+                <ul>
+                  {midTermTasks.map(task => (
+                    <li key={task._id} className={task.isCompleted ? "completed-task" : "pending-task"}>
+                      <span className="task-status-icon">{task.isCompleted ? "✓" : "○"}</span>
+                      <span className="task-name">{task.taskTitle}</span>
+                      {task.goalId && <span className="task-goal">({task.goalId.title})</span>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-tasks">No mid-term tasks yet</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Long-Term Progress */}
+        <div className="progress-card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+            <h3>🚀 {longTermGoalName}</h3>
+            <button
+              className="view-tasks-btn"
+              onClick={() => setSelectedGoalType(selectedGoalType === "longterm" ? null : "longterm")}
+              title="View tasks"
+            >
+              {selectedGoalType === "longterm" ? "Hide Tasks" : "View Tasks"}
+            </button>
+          </div>
+          <div className="progress-bar-track">
+            <div
+              className="progress-bar-fill longterm-fill"
+              style={{ width: `${longTermProgress}%` }}
+            ></div>
+          </div>
+          <p className="progress-percent longterm-color">{longTermProgress}%</p>
+
+          {/* Task List for Long-Term */}
+          {selectedGoalType === "longterm" && (
+            <div className="goal-tasks-list">
+              {longTermTasks.length > 0 ? (
+                <ul>
+                  {longTermTasks.map(task => (
+                    <li key={task._id} className={task.isCompleted ? "completed-task" : "pending-task"}>
+                      <span className="task-status-icon">{task.isCompleted ? "✓" : "○"}</span>
+                      <span className="task-name">{task.taskTitle}</span>
+                      {task.goalId && <span className="task-goal">({task.goalId.title})</span>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-tasks">No long-term tasks yet</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
