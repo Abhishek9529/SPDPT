@@ -1,0 +1,76 @@
+.task-list-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.uncompleted-card {
+    border-left: 5px solid #ef4444;
+    /* Red border for urgency */
+}
+
+.completed-card {
+    border-left: 5px solid #22c55e;
+    /* Green border for success */
+}
+
+.task-list-card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #1e293b;
+}
+
+.history-task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.history-task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.history-task-item:last-child {
+    border-bottom: none;
+}
+
+.task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.task-title {
+    font-weight: 500;
+    color: #334155;
+}
+
+.task-date {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.task-goal-badge {
+    background-color: #f1f5f9;
+    color: #64748b;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.uncompleted-item .task-title {
+    color: #ef4444;
+}
+
+.completed-item .task-title {
+    text-decoration: line-through;
+    color: #94a3b8;
+}

@@ -8,6 +8,7 @@ function Tasks() {
     const [goals, setGoals] = useState([]);
     const [selectedGoalId, setSelectedGoalId] = useState("");
     const [customGoal, setCustomGoal] = useState("");
+    const [deadline, setDeadline] = useState("");
     const [loading, setLoading] = useState(true);
 
     const student = JSON.parse(localStorage.getItem("student"));
@@ -59,7 +60,8 @@ function Tasks() {
             const res = await API.post("/tasks", {
                 studentId: student._id,
                 taskTitle,
-                goalId: finalGoalId || null
+                goalId: finalGoalId || null,
+                deadline: deadline || null
             });
 
             // Add new task to list
@@ -78,6 +80,7 @@ function Tasks() {
             setTaskTitle("");
             setSelectedGoalId("");
             setCustomGoal("");
+            setDeadline("");
 
             alert("Task added successfully");
         } catch (err) {
@@ -166,6 +169,14 @@ function Tasks() {
                     style={{ flex: "0 1 200px" }}
                 />
 
+                <input
+                    type="date"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    title="Deadline (Optional)"
+                    style={{ flex: "0 1 160px" }}
+                />
+
                 <button type="submit">Add Task</button>
             </form>
 
@@ -191,6 +202,17 @@ function Tasks() {
                                 {task.goalId && (
                                     <span style={{ fontSize: "0.8rem", color: "#a78bfa", marginTop: "0.2rem" }}>
                                         Goal: {task.goalId.title || "Linked Goal"}
+                                    </span>
+                                )}
+                                {task.deadline && (
+                                    <span style={{ fontSize: "0.8rem", color: "#94a3b8", marginTop: "0.2rem" }}>
+                                        Due: {new Date(task.deadline).toISOString().slice(0, 10)}
+                                        {(() => {
+                                            const isOverdue = new Date() > new Date(task.deadline);
+                                            return isOverdue && !task.isCompleted
+                                                ? <span style={{ color: "red", marginLeft: "0.5rem", fontWeight: "bold" }}>Overdue</span>
+                                                : null;
+                                        })()}
                                     </span>
                                 )}
                             </div>

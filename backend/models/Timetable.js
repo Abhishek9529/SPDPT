@@ -25,4 +25,7 @@ const timetableSchema = new mongoose.Schema({
     }
 });
 
+// Compound unique index to ensure one timetable entry per day per student
+timetableSchema.index({ studentId: 1, day: 1 }, { unique: true });
+
 module.exports = mongoose.model("Timetable", timetableSchema);

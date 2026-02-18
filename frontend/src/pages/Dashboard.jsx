@@ -5,6 +5,8 @@ import MyDay from "../components/MyDay";
 import WeeklyMyDayChart from "../components/WeeklyMyDayChart";
 import TaskReminder from "../components/TaskReminder";
 import GreetingBanner from "../components/GreetingBanner";
+import UncompletedTasks from "../components/UncompletedTasks";
+import CompletedTasks from "../components/CompletedTasks";
 
 
 function Dashboard() {
@@ -19,7 +21,11 @@ function Dashboard() {
   const [shortTermProgress, setShortTermProgress] = useState(0);
   const [midTermProgress, setMidTermProgress] = useState(0);
   const [longTermProgress, setLongTermProgress] = useState(0);
-  const [pendingTasks, setPendingTasks] = useState([]);
+
+  // Task Categories
+  const [pendingTasks, setPendingTasks] = useState([]); // Today's pending
+  const [backlogTasks, setBacklogTasks] = useState([]); // Past uncompleted
+  const [completedHistory, setCompletedHistory] = useState([]); // Past completed
 
   // Track tasks by goal type for modal display
   const [shortTermTasks, setShortTermTasks] = useState([]);
@@ -80,7 +86,8 @@ function Dashboard() {
             subjectId,
             goalId: goalId,
             isCompleted: true,
-            date: today
+            date: today,
+            deadline: today
           });
           setDoneSubjects(prev => ({ ...prev, [subjectId]: res.data.task._id }));
         }
@@ -91,6 +98,20 @@ function Dashboard() {
     } catch (err) {
       console.error("Error:", err);
     }
+  };
+
+  // Helper to check if a date string is strictly before today (YYYY-MM-DD comparison)
+  const isPastDate = (dateStr) => {
+    if (!dateStr) return false;
+    const tDate = dateStr.split("T")[0];
+    return tDate < today;
+  };
+
+  // Helper to check if a date string is strictly today
+  const isTodayDate = (dateStr) => {
+    if (!dateStr) return false;
+    const tDate = dateStr.split("T")[0];
+    return tDate === today;
   };
 
   // ---- Refresh stats + progress bars ----
@@ -136,56 +157,50 @@ function Dashboard() {
         setMidTermTasks(midTasks);
         setLongTermTasks(longTasks);
 
-        setPendingTasks(allTasks.filter(t => !t.isCompleted));
+        // Filter Tasks into Logic Buckets
+        // 1. Today's Pending: Not completed AND (date is Today OR no date i.e. general tasks)
+        // Note: General tasks without date are usually treated as "do it anytime", so maybe include them here or separate?
+        // Assuming "Today" focus:
+        const todaysPending = allTasks.filter(t => !t.isCompleted && (!t.date || isTodayDate(t.date)));
+
+        // 2. Backlog: Not completed AND date is Past
+        const backlog = allTasks.filter(t => !t.isCompleted && t.date && isPastDate(t.date));
+
+        // 3. Completed History: Completed AND date is Past (or generally completed)
+        // User asked for "Completed tasks component", let's put ALL completed tasks there for history reference?
+        // Or just past ones. "jo us din ke subject the... unse dashboard pr mat show karna" imply removing past stuff from main view.
+        // Let's put ALL completed tasks in history to keep main view clean, or just past ones.
+        // Usually "Pending" vs "Completed" separation is good.
+        // But user specifically said "us din ke subject... (past day subjects)... dashboard par mat show karna... completed task ke liye alag component".
+        // This suggests Today's items should stay on dashboard.
+        // So Today's Completed -> stay on timetable view.
+        // Past Completed -> move to History component.
+        const pastCompleted = allTasks.filter(t => t.isCompleted && t.date && isPastDate(t.date));
+
+        setPendingTasks(todaysPending);
+        setBacklogTasks(backlog);
+        setCompletedHistory(pastCompleted);
       })
       .catch(err => console.log(err));
   };
 
   useEffect(() => {
-    const student = JSON.parse(localStorage.getItem("student"));
-    if (!student) return;
+    const syncDashboard = async () => {
+      const student = JSON.parse(localStorage.getItem("student"));
+      if (!student) return;
 
-    setStudentName(student.fullName || student.name || student.firstName || "Student");
+      setStudentName(student.fullName || student.name || student.firstName || "Student");
 
-    // 1. Fetch Dashboard Stats
-    API.get(`/dashboard/${student._id}`)
-      .then(res => setData(res.data))
-      .catch(err => console.log(err));
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayName = days[new Date().getDay()];
+      setCurrentDay(dayName);
 
-    // 2. Fetch Today's Timetable + preload done subjects
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const dayName = days[new Date().getDay()];
-    setCurrentDay(dayName);
+      try {
+        // 1. Fetch Goals (to identify Academic Goal)
+        const goalsRes = await API.get(`/goals/${student._id}`);
+        const goals = goalsRes.data.goals || [];
 
-    API.get(`/timetable/${student._id}/${dayName}`)
-      .then(async (res) => {
-        setTimetable(res.data.timetable);
-
-        // Preload: check which subjects already have completed tasks today
-        const subjects = res.data.timetable?.subjects || [];
-        const done = {};
-        for (const sub of subjects) {
-          if (!sub || !sub._id) continue;
-          try {
-            const check = await API.get(`/tasks/check/${student._id}/${sub._id}/${today}`);
-            if (check.data.exists && check.data.task.isCompleted) {
-              done[sub._id] = check.data.task._id;
-            }
-          } catch { /* ignore */ }
-        }
-        setDoneSubjects(done);
-      })
-      .catch(err => {
-        console.log("No timetable found for today");
-        setTimetable(null);
-      });
-
-    // 3. Fetch Goals to get goal names
-    API.get(`/goals/${student._id}`)
-      .then(res => {
-        const goals = res.data.goals || [];
-
-        // Find first goal of each type and set its name
+        // Set Goal Names
         const shortTermGoal = goals.find(g => g.type === "shortterm");
         const midTermGoal = goals.find(g => g.type === "midterm");
         const longTermGoal = goals.find(g => g.type === "longterm");
@@ -193,50 +208,61 @@ function Dashboard() {
         if (shortTermGoal) setShortTermGoalName(shortTermGoal.title);
         if (midTermGoal) setMidTermGoalName(midTermGoal.title);
         if (longTermGoal) setLongTermGoalName(longTermGoal.title);
-      })
-      .catch(err => console.log("Error fetching goals:", err));
 
-    // 4. Fetch ALL tasks → compute progress
-    API.get(`/tasks/${student._id}`)
-      .then(res => {
-        const allTasks = res.data.tasks || [];
+        const academicGoal = goals.find(g => g.type === "academic");
 
-        const academicTasks = allTasks.filter(t => t.goalId && t.goalId.type === "academic");
-        const completedAcademic = academicTasks.filter(t => t.isCompleted).length;
-        const acProg = academicTasks.length > 0 ? Math.round((completedAcademic / academicTasks.length) * 100) : 0;
+        // 2. Fetch Timetable & Sync Tasks
+        let subjects = [];
+        try {
+          const ttRes = await API.get(`/timetable/${student._id}/${dayName}`);
+          setTimetable(ttRes.data.timetable);
+          subjects = ttRes.data.timetable?.subjects || [];
+        } catch (e) {
+          console.log("No timetable found for today");
+          setTimetable(null);
+        }
 
-        const skillTasks = allTasks.filter(t => t.goalId && t.goalId.type === "skill");
-        const completedSkill = skillTasks.filter(t => t.isCompleted).length;
-        const skProg = skillTasks.length > 0 ? Math.round((completedSkill / skillTasks.length) * 100) : 0;
+        // Sync: Check tasks for each subject, create if missing
+        const done = {};
+        for (const sub of subjects) {
+          if (!sub || !sub._id) continue;
 
-        // Short-term progress
-        const shortTasks = allTasks.filter(t => t.goalId && t.goalId.type === "shortterm");
-        const completedShort = shortTasks.filter(t => t.isCompleted).length;
-        const shortProg = shortTasks.length > 0 ? Math.round((completedShort / shortTasks.length) * 100) : 0;
+          try {
+            const checkRes = await API.get(`/tasks/check/${student._id}/${sub._id}/${today}`);
 
-        // Mid-term progress
-        const midTasks = allTasks.filter(t => t.goalId && t.goalId.type === "midterm");
-        const completedMid = midTasks.filter(t => t.isCompleted).length;
-        const midProg = midTasks.length > 0 ? Math.round((completedMid / midTasks.length) * 100) : 0;
+            if (checkRes.data.exists) {
+              // Valid existing task
+              if (checkRes.data.task.isCompleted) {
+                done[sub._id] = checkRes.data.task._id;
+              }
+            } else {
+              // Task MISSING -> Auto-create as Pending
+              console.log(`Auto-creating task for ${sub.subjectName}`);
+              await API.post("/tasks", {
+                studentId: student._id,
+                taskTitle: `${sub.subjectName} Daily Study`,
+                subjectId: sub._id,
+                goalId: academicGoal ? academicGoal._id : null,
+                isCompleted: false,
+                date: today,
+                deadline: today // Set deadline to today for daily tasks
+              });
+            }
+          } catch (err) {
+            console.error("Sync error for subject:", sub.subjectName, err);
+          }
+        }
+        setDoneSubjects(done);
 
-        // Long-term progress
-        const longTasks = allTasks.filter(t => t.goalId && t.goalId.type === "longterm");
-        const completedLong = longTasks.filter(t => t.isCompleted).length;
-        const longProg = longTasks.length > 0 ? Math.round((completedLong / longTasks.length) * 100) : 0;
+        // 3. Final Refresh of Stats & Tasks (will include newly created tasks)
+        refreshDashboard(student._id);
 
-        setAcademicProgress(acProg);
-        setSkillProgress(skProg);
-        setShortTermProgress(shortProg);
-        setMidTermProgress(midProg);
-        setLongTermProgress(longProg);
+      } catch (err) {
+        console.error("Dashboard sync error:", err);
+      }
+    };
 
-        setShortTermTasks(shortTasks);
-        setMidTermTasks(midTasks);
-        setLongTermTasks(longTasks);
-
-        setPendingTasks(allTasks.filter(t => !t.isCompleted));
-      })
-      .catch(err => console.log("Error fetching tasks:", err));
+    syncDashboard();
   }, []);
 
 
@@ -425,6 +451,12 @@ function Dashboard() {
       {/* ===== Weekly Productivity Trend ===== */}
       <WeeklyMyDayChart refreshKey={weeklyRefreshKey} />
 
+      {/* ===== Backlog & History Sections (NEW) ===== */}
+      <div className="dashboard-history-section" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
+        <UncompletedTasks tasks={backlogTasks} />
+        <CompletedTasks tasks={completedHistory} />
+      </div>
+
       {/* ===== Timetable + Pending Tasks Grid ===== */}
       <div className="dashboard-content-grid">
         {/* Today's Lectures */}
@@ -459,7 +491,7 @@ function Dashboard() {
 
         {/* Today's Pending Tasks */}
         <div className="dashboard-pending-section">
-          <h3>📋 Pending Tasks</h3>
+          <h3>📋 Today's Pending Tasks</h3>
           {pendingTasks.length > 0 ? (
             <ul className="pending-task-list">
               {pendingTasks.map(task => (
@@ -474,7 +506,7 @@ function Dashboard() {
               ))}
             </ul>
           ) : (
-            <p className="no-schedule-text">All tasks completed! 🎉</p>
+            <p className="no-schedule-text">All tasks for today completed! 🎉</p>
           )}
         </div>
       </div>

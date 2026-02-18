@@ -6,6 +6,27 @@ const Progress = require("../models/Progress");
 // CREATE TASK
 router.post("/", async (req, res) => {
   try {
+    // Check duplicate logic
+    if (req.body.subjectId && req.body.date) {
+      const dayStart = new Date(req.body.date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(req.body.date);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const existingTask = await Task.findOne({
+        studentId: req.body.studentId,
+        subjectId: req.body.subjectId,
+        date: { $gte: dayStart, $lte: dayEnd }
+      });
+
+      if (existingTask) {
+        return res.status(200).json({
+          message: "Task already exists",
+          task: existingTask
+        });
+      }
+    }
+
     const task = new Task(req.body);
     await task.save();
 
