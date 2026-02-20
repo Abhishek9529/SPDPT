@@ -38,6 +38,8 @@ function Dashboard() {
   const [midTermGoalName, setMidTermGoalName] = useState("Mid-Term Goals");
   const [longTermGoalName, setLongTermGoalName] = useState("Long-Term Goals");
 
+  const [showHistory, setShowHistory] = useState(false);
+
   // Simple state: which subjects are done today { subjectId: taskId }
   const [doneSubjects, setDoneSubjects] = useState({});
   const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0);
@@ -451,17 +453,30 @@ function Dashboard() {
       {/* ===== Weekly Productivity Trend ===== */}
       <WeeklyMyDayChart refreshKey={weeklyRefreshKey} />
 
-      {/* ===== Backlog & History Sections (NEW) ===== */}
-      <div className="dashboard-history-section" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
+      {/* ===== Backlog Section ===== */}
+      <div className="dashboard-history-section" style={{ marginBottom: "2rem" }}>
         <UncompletedTasks tasks={backlogTasks} />
-        <CompletedTasks tasks={completedHistory} />
       </div>
 
       {/* ===== Timetable + Pending Tasks Grid ===== */}
       <div className="dashboard-content-grid">
         {/* Today's Lectures */}
         <div className="dashboard-timetable-section">
-          <h3>Today's Lectures ({currentDay})</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+            <h3>Today's Lectures ({currentDay})</h3>
+            <button
+              className="view-tasks-btn"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              {showHistory ? "Hide History" : "Show History"}
+            </button>
+          </div>
+
+          {showHistory && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <CompletedTasks tasks={completedHistory} />
+            </div>
+          )}
           {timetable && timetable.subjects && timetable.subjects.length > 0 ? (
             <ul className="dashboard-timetable-list">
               {timetable.subjects.map((sub, index) => {
