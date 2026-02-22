@@ -7,6 +7,7 @@ import TaskReminder from "../components/TaskReminder";
 import GreetingBanner from "../components/GreetingBanner";
 import UncompletedTasks from "../components/UncompletedTasks";
 import CompletedTasks from "../components/CompletedTasks";
+import useTaskReminder from "../hooks/useTaskReminder";
 
 
 function Dashboard() {
@@ -14,6 +15,9 @@ function Dashboard() {
   const [timetable, setTimetable] = useState(null);
   const [currentDay, setCurrentDay] = useState("");
   const [studentName, setStudentName] = useState("Student");
+
+  // Schedule morning push notification via Service Worker
+  useTaskReminder(studentName);
 
   // Progress states (derived from tasks)
   const [academicProgress, setAcademicProgress] = useState(0);
@@ -268,19 +272,89 @@ function Dashboard() {
   }, []);
 
 
+  // === Test: fire a notification right now ===
+  const testNotification = async () => {
+    if (!('Notification' in window)) {
+      alert('Your browser does not support notifications.');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      alert('Please allow notifications first.');
+      return;
+    }
+
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification(`🌅 Good Morning, ${studentName}!`, {
+        body:
+          pendingTasks.length > 0 || backlogTasks.length > 0
+            ? `You have ${pendingTasks.length} task(s) for today and ${backlogTasks.length} backlog item(s). Let's get started! 💪`
+            : "You're all caught up! Have a productive day 🎉",
+        icon: '/vite.svg',
+        badge: '/vite.svg',
+        tag: 'spdpt-test-notification',
+        requireInteraction: false,
+        actions: [
+          { action: 'open', title: '📋 View Dashboard' },
+          { action: 'dismiss', title: 'Dismiss' }
+        ]
+      });
+    } else {
+      // Fallback: plain Notification API
+      new Notification(`🌅 Good Morning, ${studentName}!`, {
+        body:
+          pendingTasks.length > 0 || backlogTasks.length > 0
+            ? `You have ${pendingTasks.length} task(s) for today and ${backlogTasks.length} backlog item(s). Let's get started! 💪`
+            : "You're all caught up! Have a productive day 🎉",
+        icon: '/vite.svg'
+      });
+    }
+  };
+
   if (!data) return <h3 className="loading-text">Loading dashboard...</h3>;
 
   return (
     <div className="dashboard-page">
-      <h2>Student Dashboard</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <h2 style={{ margin: 0 }}>Student Dashboard</h2>
+        <button
+          onClick={testNotification}
+          style={{
+            background: 'linear-gradient(135deg, #a78bfa, #7c3aed)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.5rem 1rem',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            boxShadow: '0 2px 10px rgba(167, 139, 250, 0.4)',
+            transition: 'transform 0.15s'
+          }}
+          onMouseOver={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+          onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+          title="Preview morning notification"
+        >
+          🔔 Test Notification
+        </button>
+      </div>
+
+      {/* ===== Morning Smart Reminder Banner ===== */}
+      <TaskReminder
+        studentName={studentName}
+        pendingCount={pendingTasks.length}
+        backlogCount={backlogTasks.length}
+      />
 
       <GreetingBanner studentName={studentName} taskCount={pendingTasks.length} />
 
       {/* ===== Stat Cards ===== */}
       <div className="dashboard-stats">
-        {/* <div>
-          <TaskReminder />
-        </div> */}
         <div className="stat-card">
           <p className="stat-label">Total Subjects</p>
           <p className="stat-value">{data.totalSubjects}</p>
@@ -453,11 +527,6 @@ function Dashboard() {
       {/* ===== Weekly Productivity Trend ===== */}
       <WeeklyMyDayChart refreshKey={weeklyRefreshKey} />
 
-      {/* ===== Backlog Section ===== */}
-      <div className="dashboard-history-section" style={{ marginBottom: "2rem" }}>
-        <UncompletedTasks tasks={backlogTasks} />
-      </div>
-
       {/* ===== Timetable + Pending Tasks Grid ===== */}
       <div className="dashboard-content-grid">
         {/* Today's Lectures */}
@@ -473,10 +542,12 @@ function Dashboard() {
           </div>
 
           {showHistory && (
-            <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <UncompletedTasks tasks={backlogTasks} />
               <CompletedTasks tasks={completedHistory} />
             </div>
           )}
+
           {timetable && timetable.subjects && timetable.subjects.length > 0 ? (
             <ul className="dashboard-timetable-list">
               {timetable.subjects.map((sub, index) => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import API from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 
 function Login() {
@@ -47,6 +47,10 @@ function Login() {
                     />
                     <button type="submit">Login</button>
                 </form>
+
+                <div className="login-footer">
+                    Don't have an account? <Link to="/register">Register student</Link>
+                </div>
             </div>
         </div>
     );
