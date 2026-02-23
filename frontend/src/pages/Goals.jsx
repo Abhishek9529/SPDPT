@@ -9,6 +9,9 @@ function Goals() {
     const [deadline, setDeadline] = useState("");
     const [loading, setLoading] = useState(true);
 
+    const [editingGoalId, setEditingGoalId] = useState(null);
+    const [editFormData, setEditFormData] = useState({ title: "", type: "", status: "", endDate: "" });
+
     const student = JSON.parse(localStorage.getItem("student"));
 
     useEffect(() => {
@@ -51,6 +54,36 @@ function Goals() {
         }
     };
 
+    const handleDeleteGoal = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this goal?")) return;
+        try {
+            await API.delete(`/goals/${id}`);
+            setGoals(goals.filter(goal => goal._id !== id));
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to delete goal");
+        }
+    };
+
+    const handleEditClick = (goal) => {
+        setEditingGoalId(goal._id);
+        setEditFormData({
+            title: goal.title,
+            type: goal.type,
+            status: goal.status,
+            endDate: goal.endDate ? new Date(goal.endDate).toISOString().split('T')[0] : ""
+        });
+    };
+
+    const handleUpdateGoal = async (id) => {
+        try {
+            const res = await API.put(`/goals/${id}`, editFormData);
+            setGoals(goals.map(goal => goal._id === id ? res.data.goal : goal));
+            setEditingGoalId(null);
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to update goal");
+        }
+    };
+
     if (loading) return <h3 className="loading-text">Loading goals...</h3>;
 
     return (
@@ -89,13 +122,65 @@ function Goals() {
             ) : (
                 <ul className="goal-list">
                     {goals.map((goal) => {
-                        const deadline = goal.endDate ? new Date(goal.endDate).toLocaleDateString() : null;
+                        const formattedDeadline = goal.endDate ? new Date(goal.endDate).toLocaleDateString() : null;
+
+                        if (editingGoalId === goal._id) {
+                            return (
+                                <li key={goal._id} className="goal-item editing-goal">
+                                    <div className="goal-edit-form">
+                                        <input
+                                            type="text"
+                                            value={editFormData.title}
+                                            onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                                            className="edit-input"
+                                            placeholder="Goal Title"
+                                        />
+                                        <select
+                                            value={editFormData.type}
+                                            onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                                            className="edit-select"
+                                        >
+                                            <option value="skill">Skill</option>
+                                            <option value="academic">Academic</option>
+                                            <option value="exam">Exam</option>
+                                            <option value="longterm">Long Term</option>
+                                            <option value="midterm">Mid Term</option>
+                                            <option value="shortterm">Short Term</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            value={editFormData.status}
+                                            onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                                            className="edit-input"
+                                            placeholder="Status (e.g. ongoing, completed)"
+                                        />
+                                        <input
+                                            type="date"
+                                            value={editFormData.endDate}
+                                            onChange={(e) => setEditFormData({ ...editFormData, endDate: e.target.value })}
+                                            className="edit-input deadline-input"
+                                        />
+                                    </div>
+                                    <div className="goal-actions">
+                                        <button className="save-btn" onClick={() => handleUpdateGoal(goal._id)}>Save</button>
+                                        <button className="cancel-btn" onClick={() => setEditingGoalId(null)}>Cancel</button>
+                                    </div>
+                                </li>
+                            );
+                        }
+
                         return (
                             <li key={goal._id} className="goal-item">
-                                <strong>{goal.title}</strong>
-                                <span> | Type: {goal.type}</span>
-                                <span> | Status: {goal.status}</span>
-                                {deadline && <span className="goal-deadline"> | Deadline: {deadline}</span>}
+                                <div className="goal-info">
+                                    <strong>{goal.title}</strong>
+                                    <span> | Type: {goal.type}</span>
+                                    <span> | Status: {goal.status}</span>
+                                    {formattedDeadline && <span className="goal-deadline"> | Deadline: {formattedDeadline}</span>}
+                                </div>
+                                <div className="goal-actions">
+                                    <button className="edit-btn" onClick={() => handleEditClick(goal)}>Edit</button>
+                                    <button className="delete-btn" onClick={() => handleDeleteGoal(goal._id)}>Delete</button>
+                                </div>
                             </li>
                         );
                     })}

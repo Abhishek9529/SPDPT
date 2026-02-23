@@ -105,6 +105,10 @@
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
+.goal-info {
+    flex: 1;
+}
+
 .goal-item strong {
     color: #f1f5f9;
     font-size: 1rem;
@@ -113,6 +117,95 @@
 .goal-item span {
     color: #94a3b8;
     font-size: 0.9rem;
+}
+
+.goal-deadline {
+    color: #fbbf24 !important;
+    font-weight: 600;
+}
+
+/* ===== Goal Actions & Edit Form ===== */
+.goal-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.goal-actions button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: #ffffff;
+}
+
+.edit-btn {
+    background-color: #3b82f6;
+}
+
+.edit-btn:hover {
+    background-color: #2563eb;
+}
+
+.delete-btn {
+    background-color: #ef4444;
+}
+
+.delete-btn:hover {
+    background-color: #dc2626;
+}
+
+.save-btn {
+    background-color: #22c55e;
+}
+
+.save-btn:hover {
+    background-color: #16a34a;
+}
+
+.cancel-btn {
+    background-color: #64748b;
+}
+
+.cancel-btn:hover {
+    background-color: #475569;
+}
+
+.goal-edit-form {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1;
+    gap: 0.5rem;
+    margin-right: 1rem;
+}
+
+.editing-goal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .editing-goal {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+.goal-edit-form input,
+.goal-edit-form select {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background-color: #0f172a;
+    color: #f1f5f9;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
 }
 
 .goal-deadline {
