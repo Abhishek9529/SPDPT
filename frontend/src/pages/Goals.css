@@ -89,7 +89,7 @@
 
 .goal-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
     margin-bottom: 0.75rem;
@@ -103,6 +103,19 @@
 .goal-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+/* Goal card layout inside list item */
+.goal-card {
+    padding: 1rem 1.25rem;
+}
+
+.goal-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .goal-info {
@@ -218,4 +231,196 @@
     padding: 2rem 1rem;
     color: #94a3b8;
     font-size: 1rem;
+}
+
+/* ===== Action Plan Button ===== */
+.plan-btn {
+    background-color: #7c3aed;
+    color: #ffffff;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.plan-btn:hover {
+    background-color: #6d28d9;
+}
+
+/* ===== Action Plan Form ===== */
+.ap-form {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+.ap-form-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #a78bfa;
+    margin: 0 0 0.75rem;
+}
+
+.ap-step-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.ap-step-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.ap-step-input:focus {
+    border-color: #a78bfa;
+}
+
+.ap-step-input::placeholder {
+    color: #64748b;
+}
+
+.ap-remove-step {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.ap-remove-step:hover {
+    background: #dc2626;
+}
+
+.ap-form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ap-add-step-btn {
+    background-color: #1e293b;
+    color: #a78bfa;
+    border: 1px solid #a78bfa;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.ap-add-step-btn:hover {
+    background-color: #a78bfa;
+    color: #fff;
+}
+
+/* ===== Action Plan Display ===== */
+.ap-display {
+    margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+.ap-display-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+}
+
+.ap-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #a78bfa;
+}
+
+.ap-delete-btn {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.ap-steps-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ap-step-item {
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background-color: #1e293b;
+    transition: background-color 0.2s;
+}
+
+.ap-step-item.ap-step-done {
+    background-color: #14532d;
+    opacity: 0.85;
+}
+
+.ap-step-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    width: 100%;
+}
+
+.ap-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #22c55e;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ap-step-title {
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    flex: 1;
+}
+
+.ap-step-done .ap-step-title {
+    text-decoration: line-through;
+    color: #64748b;
+}
+
+.ap-task-badge {
+    font-size: 0.75rem;
+    color: #22c55e;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.loading-text {
+    text-align: center;
+    color: #94a3b8;
+    padding: 2rem;
 }

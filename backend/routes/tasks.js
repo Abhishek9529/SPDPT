@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
 const Progress = require("../models/Progress");
+const ActionPlan = require("../models/ActionPlan");
 
 // CREATE TASK
 router.post("/", async (req, res) => {
@@ -113,8 +114,6 @@ router.get("/:studentId", async (req, res) => {
 // UPDATE TASK
 // Endpoint: PUT /api/tasks/:id
 // Updates task details by its ID
-
-// updated code for updated tasks 
 router.put("/:id", async (req, res) => {
   try {
     const updatedTask = await Task.findByIdAndUpdate(
@@ -125,34 +124,30 @@ router.put("/:id", async (req, res) => {
 
     // AUTO PROGRESS UPDATE (if task linked to goal)
     if (updatedTask.goalId) {
-
-      const totalTasks = await Task.countDocuments({
-        goalId: updatedTask.goalId
-      });
-
-      const completedTasks = await Task.countDocuments({
-        goalId: updatedTask.goalId,
-        isCompleted: true
-      });
-
-      const percentage = totalTasks > 0
-        ? Math.round((completedTasks / totalTasks) * 100)
-        : 0;
+      const totalTasks = await Task.countDocuments({ goalId: updatedTask.goalId });
+      const completedTasks = await Task.countDocuments({ goalId: updatedTask.goalId, isCompleted: true });
+      const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       await Progress.findOneAndUpdate(
-        {
-          studentId: updatedTask.studentId,
-          goalId: updatedTask.goalId
-        },
-        {
-          percentage,
-          updatedAt: Date.now()
-        },
-        {
-          upsert: true,
-          new: true
-        }
+        { studentId: updatedTask.studentId, goalId: updatedTask.goalId },
+        { percentage, updatedAt: Date.now() },
+        { upsert: true, new: true }
       );
+    }
+
+    // SYNC ActionPlan step.isDone when task completion changes
+    if (updatedTask.actionPlanId) {
+      const plan = await ActionPlan.findById(updatedTask.actionPlanId);
+      if (plan) {
+        // Find the step whose taskId matches this task
+        const step = plan.steps.find(
+          (s) => s.taskId && s.taskId.toString() === updatedTask._id.toString()
+        );
+        if (step) {
+          step.isDone = updatedTask.isCompleted;
+          await plan.save();
+        }
+      }
     }
 
     res.json({

@@ -12,6 +12,11 @@ function Goals() {
     const [editingGoalId, setEditingGoalId] = useState(null);
     const [editFormData, setEditFormData] = useState({ title: "", type: "", status: "", endDate: "" });
 
+    // ActionPlan state
+    const [actionPlans, setActionPlans] = useState({}); // { goalId: actionPlan }
+    const [showPlanForm, setShowPlanForm] = useState(null); // goalId whose form is open
+    const [stepInputs, setStepInputs] = useState([""]); // step title inputs
+
     const student = JSON.parse(localStorage.getItem("student"));
 
     useEffect(() => {
@@ -19,8 +24,12 @@ function Goals() {
 
         API.get(`/goals/${student._id}`)
             .then(res => {
-                setGoals(res.data.goals);
+                const fetchedGoals = res.data.goals;
+                setGoals(fetchedGoals);
                 setLoading(false);
+
+                // Fetch action plans for each goal
+                fetchedGoals.forEach(goal => fetchActionPlan(goal._id));
             })
             .catch(err => {
                 console.log(err);
@@ -28,6 +37,20 @@ function Goals() {
             });
     }, []);
 
+    // --- Fetch ActionPlan for a given goalId ---
+    const fetchActionPlan = async (goalId) => {
+        try {
+            const res = await API.get(`/actionPlans/goal/${goalId}`);
+            const plans = res.data.actionPlans;
+            if (plans && plans.length > 0) {
+                setActionPlans(prev => ({ ...prev, [goalId]: plans[0] }));
+            }
+        } catch (err) {
+            console.log("ActionPlan fetch error:", err);
+        }
+    };
+
+    // --- Goal CRUD ---
     const handleAddGoal = async (e) => {
         e.preventDefault();
 
@@ -84,6 +107,83 @@ function Goals() {
         }
     };
 
+    // --- ActionPlan ---
+    const handleOpenPlanForm = (goalId) => {
+        setShowPlanForm(goalId);
+        setStepInputs([""]);
+    };
+
+    const handleAddStep = () => setStepInputs(prev => [...prev, ""]);
+    const handleRemoveStep = (i) => setStepInputs(prev => prev.filter((_, idx) => idx !== i));
+    const handleStepChange = (i, val) => {
+        setStepInputs(prev => { const copy = [...prev]; copy[i] = val; return copy; });
+    };
+
+    const handleSavePlan = async (goalId) => {
+        const validSteps = stepInputs.map(s => s.trim()).filter(Boolean);
+        if (validSteps.length === 0) {
+            alert("Add at least one step.");
+            return;
+        }
+
+        try {
+            await API.post("/actionPlans", {
+                studentId: student._id,
+                goalId,
+                steps: validSteps.map(t => ({ title: t }))
+            });
+
+            // Re-fetch from server to get steps with taskIds correctly set
+            await fetchActionPlan(goalId);
+            setShowPlanForm(null);
+            setStepInputs([""]);
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to save action plan");
+        }
+    };
+
+    // Checkbox: toggle step isDone → marks linked Task complete/incomplete
+    const handleStepToggle = async (goalId, planId, stepId, currentDone) => {
+        // Optimistic update: flip isDone immediately so UI feels instant
+        setActionPlans(prev => {
+            const plan = prev[goalId];
+            if (!plan) return prev;
+            const updatedSteps = plan.steps.map(s =>
+                s._id === stepId ? { ...s, isDone: !currentDone } : s
+            );
+            return { ...prev, [goalId]: { ...plan, steps: updatedSteps } };
+        });
+
+        try {
+            const res = await API.patch(`/actionPlans/${planId}/step/${stepId}`, {
+                isDone: !currentDone
+            });
+            // Confirm with server response (truth source)
+            setActionPlans(prev => ({ ...prev, [goalId]: res.data.actionPlan }));
+        } catch (err) {
+            // Revert optimistic update on failure
+            setActionPlans(prev => {
+                const plan = prev[goalId];
+                if (!plan) return prev;
+                const revertedSteps = plan.steps.map(s =>
+                    s._id === stepId ? { ...s, isDone: currentDone } : s
+                );
+                return { ...prev, [goalId]: { ...plan, steps: revertedSteps } };
+            });
+            alert(err.response?.data?.error || "Failed to update step");
+        }
+    };
+
+    const handleDeletePlan = async (goalId, planId) => {
+        if (!window.confirm("Delete this action plan?")) return;
+        try {
+            await API.delete(`/actionPlans/${planId}`);
+            setActionPlans(prev => { const copy = { ...prev }; delete copy[goalId]; return copy; });
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to delete action plan");
+        }
+    };
+
     if (loading) return <h3 className="loading-text">Loading goals...</h3>;
 
     return (
@@ -123,6 +223,7 @@ function Goals() {
                 <ul className="goal-list">
                     {goals.map((goal) => {
                         const formattedDeadline = goal.endDate ? new Date(goal.endDate).toLocaleDateString() : null;
+                        const plan = actionPlans[goal._id];
 
                         if (editingGoalId === goal._id) {
                             return (
@@ -170,17 +271,78 @@ function Goals() {
                         }
 
                         return (
-                            <li key={goal._id} className="goal-item">
-                                <div className="goal-info">
-                                    <strong>{goal.title}</strong>
-                                    <span> | Type: {goal.type}</span>
-                                    <span> | Status: {goal.status}</span>
-                                    {formattedDeadline && <span className="goal-deadline"> | Deadline: {formattedDeadline}</span>}
+                            <li key={goal._id} className="goal-item goal-card">
+                                {/* Goal header row */}
+                                <div className="goal-header-row">
+                                    <div className="goal-info">
+                                        <strong>{goal.title}</strong>
+                                        <span> | Type: {goal.type}</span>
+                                        <span> | Status: {goal.status}</span>
+                                        {formattedDeadline && <span className="goal-deadline"> | Deadline: {formattedDeadline}</span>}
+                                    </div>
+                                    <div className="goal-actions">
+                                        <button className="edit-btn" onClick={() => handleEditClick(goal)}>Edit</button>
+                                        <button className="delete-btn" onClick={() => handleDeleteGoal(goal._id)}>Delete</button>
+                                        {!plan && (
+                                            <button className="plan-btn" onClick={() => handleOpenPlanForm(goal._id)}>
+                                                + Action Plan
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="goal-actions">
-                                    <button className="edit-btn" onClick={() => handleEditClick(goal)}>Edit</button>
-                                    <button className="delete-btn" onClick={() => handleDeleteGoal(goal._id)}>Delete</button>
-                                </div>
+
+                                {/* Action Plan Form */}
+                                {showPlanForm === goal._id && (
+                                    <div className="ap-form">
+                                        <p className="ap-form-title">📋 Create Action Plan</p>
+                                        {stepInputs.map((val, i) => (
+                                            <div key={i} className="ap-step-row">
+                                                <input
+                                                    className="ap-step-input"
+                                                    placeholder={`Step ${i + 1}`}
+                                                    value={val}
+                                                    onChange={(e) => handleStepChange(i, e.target.value)}
+                                                />
+                                                {stepInputs.length > 1 && (
+                                                    <button className="ap-remove-step" onClick={() => handleRemoveStep(i)}>✕</button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <div className="ap-form-actions">
+                                            <button className="ap-add-step-btn" onClick={handleAddStep}>+ Add Step</button>
+                                            <button className="save-btn" onClick={() => handleSavePlan(goal._id)}>Save Plan</button>
+                                            <button className="cancel-btn" onClick={() => setShowPlanForm(null)}>Cancel</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Display existing ActionPlan */}
+                                {plan && (
+                                    <div className="ap-display">
+                                        <div className="ap-display-header">
+                                            <span className="ap-label">📋 Action Plan</span>
+                                            <button className="delete-btn ap-delete-btn" onClick={() => handleDeletePlan(goal._id, plan._id)}>
+                                                Delete Plan
+                                            </button>
+                                        </div>
+                                        <ul className="ap-steps-list">
+                                            {plan.steps.map((step) => (
+                                                <li key={step._id} className={`ap-step-item ${step.isDone ? "ap-step-done" : ""}`}>
+                                                    <label className="ap-step-label">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={step.isDone}
+                                                            onChange={() => handleStepToggle(goal._id, plan._id, step._id, step.isDone)}
+                                                            className="ap-checkbox"
+                                                        />
+                                                        <span className="ap-step-title">{step.title}</span>
+                                                        {step.isDone && <span className="ap-task-badge">✅ Completed</span>}
+                                                    </label>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </li>
                         );
                     })}

@@ -62,9 +62,20 @@ function MyDay({ onSave }) {
     const [productivityScore, setProductivityScore] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
 
-    // Total hours
-    const totalHours = rows.reduce((sum, r) => sum + (Number(r.hours) || 0), 0);
-    const remainingHours = 24 - totalHours;
+    // Total hours calculated rounded to 2 decimal places to avoid float issues
+    const totalHours = Number(rows.reduce((sum, r) => sum + (Number(r.hours) || 0), 0).toFixed(2));
+    const remainingHours = Number((24 - totalHours).toFixed(2));
+
+    // Helper to format decimal hours into "Xh Ym"
+    const formatHoursToTime = (decimalHours) => {
+        if (typeof decimalHours !== 'number' || isNaN(decimalHours)) return "0h 0m";
+        const h = Math.floor(decimalHours);
+        const m = Math.round((decimalHours - h) * 60);
+
+        if (m === 0) return `${h}h`;
+        if (h === 0) return `${m}m`;
+        return `${h}h ${m}m`;
+    };
 
     // Calculate productivity score from current rows
     const calcScore = (cats, total) => {
@@ -111,7 +122,7 @@ function MyDay({ onSave }) {
                 (sum, r, i) => i === index ? sum : sum + (Number(r.hours) || 0), 0
             );
             if (num < 0) return;
-            if (othersTotal + num > 24) {
+            if (Number((othersTotal + num).toFixed(2)) > 24) {
                 setError("Total cannot exceed 24 hours!");
                 return;
             }
@@ -196,7 +207,7 @@ function MyDay({ onSave }) {
 
     // ---- Ideal Day Pie ----
     const idealPieData = {
-        labels: IDEAL_DAY.map(d => `${d.name} (${d.hours}h)`),
+        labels: IDEAL_DAY.map(d => `${d.name} (${formatHoursToTime(d.hours)})`),
         datasets: [{
             data: IDEAL_DAY.map(d => d.hours),
             backgroundColor: COLORS.slice(0, IDEAL_DAY.length),
@@ -208,7 +219,7 @@ function MyDay({ onSave }) {
     // ---- Actual Day Pie ----
     const filledRows = rows.filter(r => r.name.trim() && Number(r.hours) > 0);
     const actualPieData = {
-        labels: filledRows.map(r => `${r.name} (${r.hours}h)`),
+        labels: filledRows.map(r => `${r.name} (${formatHoursToTime(Number(r.hours))})`),
         datasets: [{
             data: filledRows.map(r => Number(r.hours)),
             backgroundColor: filledRows.map((_, i) => COLORS[i % COLORS.length]),
@@ -230,10 +241,11 @@ function MyDay({ onSave }) {
                     label: (ctx) => {
                         const hours = ctx.parsed;
                         const pct = Math.round((hours / 24) * 100);
+                        const formattedTime = formatHoursToTime(hours);
                         if (withNotes) {
                             const row = filledRows[ctx.dataIndex];
                             const note = row?.note ? ` – Note: ${row.note}` : "";
-                            return ` ${row?.name} – ${hours} hrs (${pct}%)${note}`;
+                            return ` ${row?.name} – ${formattedTime} (${pct}%)${note}`;
                         }
                         return ` ${ctx.label}: ${pct}%`;
                     }
@@ -325,6 +337,7 @@ function MyDay({ onSave }) {
                                 value={row.hours}
                                 onChange={(e) => updateRow(i, "hours", e.target.value)}
                                 className="myday-hours-input"
+                                title={`You can enter decimals like 0.5 for 30 mins`}
                             />
                             <input
                                 type="text"
@@ -351,9 +364,9 @@ function MyDay({ onSave }) {
 
                 <div className="myday-form-footer">
                     <span className={`myday-total ${totalHours > 24 ? "myday-total-error" : ""}`}>
-                        Total: {totalHours} / 24 hrs
+                        Total: {formatHoursToTime(totalHours)} / 24h
                         {remainingHours > 0 && totalHours > 0 && (
-                            <span className="myday-remaining"> ({remainingHours}h remaining)</span>
+                            <span className="myday-remaining"> ({formatHoursToTime(remainingHours)} remaining)</span>
                         )}
                     </span>
 
