@@ -54,8 +54,17 @@ function Goals() {
     const handleAddGoal = async (e) => {
         e.preventDefault();
 
-        if (!title.trim()) {
-            alert("Goal title is required");
+        const trimmedTitle = title.trim();
+        if (!trimmedTitle) {
+            alert("Goal title is required.");
+            return;
+        }
+        if (/^\d+$/.test(trimmedTitle)) {
+            alert("Goal title cannot be only numbers. Please enter a meaningful goal name.");
+            return;
+        }
+        if (trimmedTitle.length < 3) {
+            alert("Goal title must be at least 3 characters.");
             return;
         }
 
@@ -98,8 +107,21 @@ function Goals() {
     };
 
     const handleUpdateGoal = async (id) => {
+        const trimmedTitle = (editFormData.title || "").trim();
+        if (!trimmedTitle) {
+            alert("Goal title is required.");
+            return;
+        }
+        if (/^\d+$/.test(trimmedTitle)) {
+            alert("Goal title cannot be only numbers.");
+            return;
+        }
+        if (trimmedTitle.length < 3) {
+            alert("Goal title must be at least 3 characters.");
+            return;
+        }
         try {
-            const res = await API.put(`/goals/${id}`, editFormData);
+            const res = await API.put(`/goals/${id}`, { ...editFormData, title: trimmedTitle });
             setGoals(goals.map(goal => goal._id === id ? res.data.goal : goal));
             setEditingGoalId(null);
         } catch (err) {

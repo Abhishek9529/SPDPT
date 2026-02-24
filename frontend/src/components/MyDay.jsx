@@ -51,6 +51,26 @@ function getRecommendations(categories) {
     return tips;
 }
 
+// ---- Validation helper ----
+// Returns true if string looks purely numeric (integers like "00000", "123", etc.)
+const isPurelyNumeric = (str) => /^\d+$/.test(str.trim());
+
+// Validate a single row, returns error string or ""
+function validateRow(row) {
+    const name = (row.name || "").trim();
+    const hours = row.hours;
+
+    if (!name) return ""; // Empty rows are skipped, not an error at row level
+    if (isPurelyNumeric(name)) return "Activity name cannot be only numbers";
+    if (name.length < 2) return "Activity name must be at least 2 characters";
+    if (hours === "" || hours === null || hours === undefined) return "Hours are required";
+    const h = Number(hours);
+    if (isNaN(h)) return "Hours must be a number";
+    if (h <= 0) return "Hours must be greater than 0";
+    if (h > 24) return "Hours cannot exceed 24";
+    return "";
+}
+
 function MyDay({ onSave }) {
     // Dynamic rows: student types everything
     const [rows, setRows] = useState([
@@ -59,6 +79,7 @@ function MyDay({ onSave }) {
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [rowErrors, setRowErrors] = useState([]); // per-row errors
     const [productivityScore, setProductivityScore] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
 
@@ -101,6 +122,7 @@ function MyDay({ onSave }) {
                         note: c.note || ""
                     }));
                     setRows(cats);
+                    setRowErrors(cats.map(() => ""));
                     setSaved(true);
 
                     // Set productivity score
@@ -116,8 +138,12 @@ function MyDay({ onSave }) {
 
     // Update a row field
     const updateRow = (index, field, value) => {
+        if (field === "name") {
+            // Don't block typing, but validate inline
+        }
+
         if (field === "hours") {
-            const num = Number(value) || 0;
+            const num = Number(value);
             const othersTotal = rows.reduce(
                 (sum, r, i) => i === index ? sum : sum + (Number(r.hours) || 0), 0
             );
@@ -132,9 +158,16 @@ function MyDay({ onSave }) {
         setRows(prev => {
             const copy = [...prev];
             copy[index] = { ...copy[index], [field]: value };
+
+            // Validate this row inline after update
+            const newErrors = [...rowErrors];
+            newErrors[index] = validateRow(copy[index]);
+            setRowErrors(newErrors);
+
             return copy;
         });
-        setError("");
+
+        if (field !== "hours") setError("");
     };
 
     const addRow = () => {
@@ -143,20 +176,40 @@ function MyDay({ onSave }) {
             return;
         }
         setRows(prev => [...prev, { name: "", hours: "", note: "" }]);
+        setRowErrors(prev => [...prev, ""]);
     };
 
     const removeRow = (index) => {
         if (rows.length <= 1) return;
         setRows(prev => prev.filter((_, i) => i !== index));
+        setRowErrors(prev => prev.filter((_, i) => i !== index));
         setError("");
     };
 
     // Submit handler
     const handleSubmit = async () => {
+        // Re-validate all rows
+        const errors = rows.map(r => validateRow(r));
+        setRowErrors(errors);
+
+        // Check for rows that have a name but invalid content
+        const namedRows = rows.filter(r => (r.name || "").trim());
+        if (namedRows.length === 0) {
+            setError("Add at least one activity with a name and hours.");
+            return;
+        }
+
+        // Check if any named row has errors
+        const hasErrors = namedRows.some(r => validateRow(r) !== "");
+        if (hasErrors) {
+            setError("Please fix the highlighted errors before saving.");
+            return;
+        }
+
         const validRows = rows.filter(r => r.name.trim() && Number(r.hours) > 0);
 
         if (validRows.length === 0) {
-            setError("Add at least one category with hours.");
+            setError("Add at least one category with name and hours.");
             return;
         }
 
@@ -199,7 +252,7 @@ function MyDay({ onSave }) {
             if (onSave) onSave();
         } catch (err) {
             console.error("MyDay save error:", err);
-            setError("Failed to save. Try again.");
+            setError(err.response?.data?.error || "Failed to save. Try again.");
         } finally {
             setSaving(false);
         }
@@ -320,40 +373,46 @@ function MyDay({ onSave }) {
 
                 <div className="myday-form-grid">
                     {rows.map((row, i) => (
-                        <div key={i} className="myday-form-row">
-                            <input
-                                type="text"
-                                placeholder="e.g. Sleep, Study, Gym..."
-                                value={row.name}
-                                onChange={(e) => updateRow(i, "name", e.target.value)}
-                                className="myday-name-input"
-                            />
-                            <input
-                                type="number"
-                                min="0"
-                                max={Number(row.hours || 0) + remainingHours}
-                                step="0.5"
-                                placeholder="Hrs"
-                                value={row.hours}
-                                onChange={(e) => updateRow(i, "hours", e.target.value)}
-                                className="myday-hours-input"
-                                title={`You can enter decimals like 0.5 for 30 mins`}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Optional note"
-                                value={row.note}
-                                onChange={(e) => updateRow(i, "note", e.target.value)}
-                                className="myday-note-input"
-                            />
-                            <button
-                                className="myday-remove-btn"
-                                onClick={() => removeRow(i)}
-                                disabled={rows.length <= 1}
-                                title="Remove row"
-                            >
-                                ✕
-                            </button>
+                        <div key={i} className="myday-form-row-wrapper">
+                            <div className={`myday-form-row ${rowErrors[i] ? "myday-row-error" : ""}`}>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Sleep, Study, Gym..."
+                                    value={row.name}
+                                    onChange={(e) => updateRow(i, "name", e.target.value)}
+                                    className={`myday-name-input ${rowErrors[i] ? "input-error" : ""}`}
+                                    title="Enter the activity name (e.g. Sleep, Study)"
+                                />
+                                <input
+                                    type="number"
+                                    min="0.5"
+                                    max={Number(row.hours || 0) + remainingHours}
+                                    step="0.5"
+                                    placeholder="Hrs"
+                                    value={row.hours}
+                                    onChange={(e) => updateRow(i, "hours", e.target.value)}
+                                    className={`myday-hours-input ${rowErrors[i] ? "input-error" : ""}`}
+                                    title="Enter hours (e.g. 1.5 for 1h 30m)"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Optional note"
+                                    value={row.note}
+                                    onChange={(e) => updateRow(i, "note", e.target.value)}
+                                    className="myday-note-input"
+                                />
+                                <button
+                                    className="myday-remove-btn"
+                                    onClick={() => removeRow(i)}
+                                    disabled={rows.length <= 1}
+                                    title="Remove row"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            {rowErrors[i] && (
+                                <span className="myday-row-error-msg">⚠ {rowErrors[i]}</span>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -370,7 +429,7 @@ function MyDay({ onSave }) {
                         )}
                     </span>
 
-                    {error && <span className="myday-error">{error}</span>}
+                    {error && <span className="myday-error">⚠ {error}</span>}
 
                     <button
                         className="myday-save-btn"

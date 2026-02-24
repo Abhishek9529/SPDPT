@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import API from "../services/api";
 import "./Dashboard.css";
 import MyDay from "../components/MyDay";
@@ -191,6 +191,8 @@ function Dashboard() {
   };
 
   useEffect(() => {
+    let isCancelled = false;
+
     const syncDashboard = async () => {
       const student = JSON.parse(localStorage.getItem("student"));
       if (!student) return;
@@ -204,6 +206,8 @@ function Dashboard() {
       try {
         // 1. Fetch Goals (to identify Academic Goal)
         const goalsRes = await API.get(`/goals/${student._id}`);
+        if (isCancelled) return; // Prevent strict mode race condition hook
+
         const goals = goalsRes.data.goals || [];
 
         // Set Goal Names
@@ -269,6 +273,10 @@ function Dashboard() {
     };
 
     syncDashboard();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
 

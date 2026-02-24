@@ -7,6 +7,21 @@ const ActionPlan = require("../models/ActionPlan");
 // CREATE TASK
 router.post("/", async (req, res) => {
   try {
+    // --- Server-side validation for taskTitle ---
+    const { taskTitle, studentId } = req.body;
+    if (!studentId) {
+      return res.status(400).json({ error: "studentId is required." });
+    }
+    if (!taskTitle || !taskTitle.trim()) {
+      return res.status(400).json({ error: "Task title is required." });
+    }
+    if (/^\d+$/.test(taskTitle.trim())) {
+      return res.status(400).json({ error: "Task title cannot be only numbers. Please enter a meaningful task name." });
+    }
+    if (taskTitle.trim().length < 3) {
+      return res.status(400).json({ error: "Task title must be at least 3 characters." });
+    }
+
     // Check duplicate logic
     if (req.body.subjectId && req.body.date) {
       const dayStart = new Date(req.body.date);

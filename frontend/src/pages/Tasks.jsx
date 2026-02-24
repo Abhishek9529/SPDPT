@@ -36,8 +36,17 @@ function Tasks() {
     const handleAddTask = async (e) => {
         e.preventDefault();
 
-        if (!taskTitle.trim()) {
-            alert("Task title is required");
+        const trimmedTitle = taskTitle.trim();
+        if (!trimmedTitle) {
+            alert("Task title is required.");
+            return;
+        }
+        if (/^\d+$/.test(trimmedTitle)) {
+            alert("Task title cannot be only numbers. Please enter a meaningful task name.");
+            return;
+        }
+        if (trimmedTitle.length < 3) {
+            alert("Task title must be at least 3 characters.");
             return;
         }
 
@@ -59,7 +68,7 @@ function Tasks() {
 
             const res = await API.post("/tasks", {
                 studentId: student._id,
-                taskTitle,
+                taskTitle: trimmedTitle,
                 goalId: finalGoalId || null,
                 deadline: deadline || null
             });

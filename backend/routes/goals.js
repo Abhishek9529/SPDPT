@@ -2,9 +2,36 @@ const express = require("express");
 const router = express.Router();
 const Goal = require("../models/Goal");
 
+const VALID_GOAL_TYPES = ["skill", "academic", "exam", "longterm", "midterm", "shortterm"];
+
 // CREATE GOAL
 router.post("/", async (req, res) => {
   try {
+    const { studentId, title, type, endDate } = req.body;
+
+    // --- Server-side validation ---
+    if (!studentId) {
+      return res.status(400).json({ error: "studentId is required." });
+    }
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: "Goal title is required." });
+    }
+    if (/^\d+$/.test(title.trim())) {
+      return res.status(400).json({ error: "Goal title cannot be only numbers." });
+    }
+    if (title.trim().length < 3) {
+      return res.status(400).json({ error: "Goal title must be at least 3 characters." });
+    }
+    if (type && !VALID_GOAL_TYPES.includes(type)) {
+      return res.status(400).json({ error: `Invalid goal type. Must be one of: ${VALID_GOAL_TYPES.join(", ")}.` });
+    }
+    if (endDate) {
+      const parsedDate = new Date(endDate);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ error: "Invalid deadline date format." });
+      }
+    }
+
     const goal = new Goal(req.body);
     await goal.save();
 

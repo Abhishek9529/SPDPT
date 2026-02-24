@@ -30,10 +30,34 @@ router.post("/", async (req, res) => {
   try {
     const { name, email, password, branch, semester, careerGoal } = req.body;
 
+    // --- Server-side validation ---
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Full name is required." });
+    }
+    if (/^\d+$/.test(name.trim())) {
+      return res.status(400).json({ message: "Name cannot be only numbers." });
+    }
+    if (name.trim().length < 2) {
+      return res.status(400).json({ message: "Name must be at least 2 characters." });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: "Email is required." });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ message: "Please enter a valid email address." });
+    }
+    if (!password) {
+      return res.status(400).json({ message: "Password is required." });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long." });
+    }
+
     // check existing user
-    const existingStudent = await Student.findOne({ email });
+    const existingStudent = await Student.findOne({ email: email.trim().toLowerCase() });
     if (existingStudent) {
-      return res.status(400).json({ message: "Student already exists" });
+      return res.status(400).json({ message: "An account with this email already exists." });
     }
 
     // NEW (hashed):
@@ -41,14 +65,13 @@ router.post("/", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newStudent = new Student({
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
       password: hashedPassword,
       branch,
       semester,
       careerGoal
     });
-
 
     await newStudent.save();
 

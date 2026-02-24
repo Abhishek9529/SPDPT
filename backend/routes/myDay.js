@@ -45,7 +45,43 @@ router.post("/", async (req, res) => {
     try {
         const { studentId, categories } = req.body;
 
+        // --- Server-side validation ---
+        if (!studentId) {
+            return res.status(400).json({ error: "studentId is required." });
+        }
+        if (!Array.isArray(categories) || categories.length === 0) {
+            return res.status(400).json({ error: "categories must be a non-empty array." });
+        }
+
+        // Validate each category
+        for (let i = 0; i < categories.length; i++) {
+            const cat = categories[i];
+            const name = (cat.name || "").trim();
+            const hours = Number(cat.hours);
+
+            if (!name) {
+                return res.status(400).json({ error: `Category ${i + 1}: name is required.` });
+            }
+            // Reject purely numeric names
+            if (/^\d+$/.test(name)) {
+                return res.status(400).json({ error: `Category ${i + 1}: name cannot be only numbers. Please enter a meaningful activity name (e.g. "Sleep", "Study").` });
+            }
+            if (name.length < 2) {
+                return res.status(400).json({ error: `Category ${i + 1}: name must be at least 2 characters.` });
+            }
+            if (isNaN(hours) || hours <= 0) {
+                return res.status(400).json({ error: `Category ${i + 1}: hours must be a positive number.` });
+            }
+            if (hours > 24) {
+                return res.status(400).json({ error: `Category ${i + 1}: hours cannot exceed 24.` });
+            }
+        }
+
         const totalHours = categories.reduce((a, b) => a + Number(b.hours), 0);
+        if (totalHours > 24) {
+            return res.status(400).json({ error: `Total hours (${totalHours.toFixed(2)}) cannot exceed 24.` });
+        }
+
         const productivityScore = calcProductivityScore(categories, totalHours);
 
         // Use IST-aware today

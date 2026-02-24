@@ -28,8 +28,17 @@ function Subjects() {
     const handleAddSubject = async (e) => {
         e.preventDefault();
 
-        if (!subjectName.trim()) {
-            alert("Subject name is required");
+        const trimmedName = subjectName.trim();
+        if (!trimmedName) {
+            alert("Subject name is required.");
+            return;
+        }
+        if (/^\d+$/.test(trimmedName)) {
+            alert("Subject name cannot be only numbers. Please enter a meaningful subject name.");
+            return;
+        }
+        if (trimmedName.length < 2) {
+            alert("Subject name must be at least 2 characters.");
             return;
         }
 
@@ -161,6 +170,19 @@ function TimetableManager({ subjects, studentId, onSubjectAdded }) {
         if (!selectedSubjectId && !newSubjectName.trim()) {
             alert("Please select an existing subject or enter a new subject name.");
             return;
+        }
+
+        // Validate new subject name if provided
+        if (!selectedSubjectId && newSubjectName.trim()) {
+            const trimmedNew = newSubjectName.trim();
+            if (/^\d+$/.test(trimmedNew)) {
+                alert("Subject name cannot be only numbers. Please enter a meaningful subject name.");
+                return;
+            }
+            if (trimmedNew.length < 2) {
+                alert("Subject name must be at least 2 characters.");
+                return;
+            }
         }
 
         try {

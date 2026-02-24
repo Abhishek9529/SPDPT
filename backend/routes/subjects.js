@@ -2,9 +2,30 @@ const express = require("express");
 const router = express.Router();
 const Subject = require("../models/Subject");
 
+const VALID_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 // CREATE SUBJECT
 router.post("/", async (req, res) => {
   try {
+    const { studentId, subjectName, day } = req.body;
+
+    // --- Server-side validation ---
+    if (!studentId) {
+      return res.status(400).json({ error: "studentId is required." });
+    }
+    if (!subjectName || !subjectName.trim()) {
+      return res.status(400).json({ error: "Subject name is required." });
+    }
+    if (/^\d+$/.test(subjectName.trim())) {
+      return res.status(400).json({ error: "Subject name cannot be only numbers." });
+    }
+    if (subjectName.trim().length < 2) {
+      return res.status(400).json({ error: "Subject name must be at least 2 characters." });
+    }
+    if (day && !VALID_DAYS.includes(day)) {
+      return res.status(400).json({ error: `Invalid day. Must be one of: ${VALID_DAYS.join(", ")}.` });
+    }
+
     const subject = new Subject(req.body);
     await subject.save();
 

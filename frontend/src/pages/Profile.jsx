@@ -121,6 +121,21 @@ function Profile() {
         const student = JSON.parse(localStorage.getItem("student"));
         if (!student) return;
 
+        // --- Client-side validation ---
+        const trimmedName = (form.name || "").trim();
+        if (!trimmedName) {
+            setErrorMsg("Name is required.");
+            return;
+        }
+        if (/^\d+$/.test(trimmedName)) {
+            setErrorMsg("Name cannot be only numbers. Please enter your real name.");
+            return;
+        }
+        if (trimmedName.length < 2) {
+            setErrorMsg("Name must be at least 2 characters.");
+            return;
+        }
+
         setSaving(true);
         setSuccessMsg("");
         setErrorMsg("");
@@ -128,6 +143,7 @@ function Profile() {
         try {
             // Exclude email from update (it's read-only & has unique constraint)
             const { email, ...updateData } = form;
+            updateData.name = trimmedName; // use the trimmed name
             const res = await API.put(`/students/${student._id}`, updateData);
             setSuccessMsg("Profile updated successfully!");
 

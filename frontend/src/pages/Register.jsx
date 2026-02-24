@@ -15,10 +15,44 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // --- Client-side validation ---
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+
+        if (!trimmedName) {
+            alert("Full name is required.");
+            return;
+        }
+        if (/^\d+$/.test(trimmedName)) {
+            alert("Name cannot be only numbers. Please enter your real name.");
+            return;
+        }
+        if (trimmedName.length < 2) {
+            alert("Name must be at least 2 characters.");
+            return;
+        }
+        if (!trimmedEmail) {
+            alert("Email is required.");
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trimmedEmail)) {
+            alert("Please enter a valid email address.");
+            return;
+        }
+        if (!password) {
+            alert("Password is required.");
+            return;
+        }
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters long.");
+            return;
+        }
+
         try {
             const res = await API.post("/students", {
-                name,
-                email,
+                name: trimmedName,
+                email: trimmedEmail,
                 password,
                 branch,
                 semester,
